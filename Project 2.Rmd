@@ -1,0 +1,38 @@
+---
+title: "ST558 Project 2"
+author: "Sergio Mora & Ashley Ko"
+output: html_document
+---
+
+
+
+```{r setup, include=FALSE, message=FALSE}
+#Required Packages
+library(knitr)
+library(rmarkdown)
+library(caret)
+library(tidyverse)
+```  
+
+# Introduction
+
+# Data
+## Reading in the data
+We will read in our csv dataset. As instructed we will also split our data by `data_channel_is_*`.
+
+```{r}
+online_new_popularity_data <- read.csv("./OnlineNewsPopularity/OnlineNewsPopularity.csv")
+```
+
+# Summarizations
+## EDA's
+  We will summarize our data for each `data_channel_is_*`. For consitancy we will iterate the same EDA's for each group.
+```{r}
+online_new_popularity_data
+```
+
+## Contigency tables
+
+# Modeling
+
+# Comparison
