@@ -2,34 +2,58 @@
 title: "ST558 Project 2"
 author: "Sergio Mora & Ashley Ko"
 output: html_document
+params:
+  category: "lifestyle"
 ---
 
 
 
 ```{r setup, include=FALSE, message=FALSE}
+set.seed(123)
+
 #Required Packages
 library(knitr)
 library(rmarkdown)
 library(caret)
 library(tidyverse)
+library(dplyr)
 ```  
 
 # Introduction
 
 # Data
-## Reading in the data
+## Reading in data
 We will read in our csv dataset. As instructed we will also split our data by `data_channel_is_*`.
-
 ```{r}
 online_new_popularity_data <- read.csv("./OnlineNewsPopularity/OnlineNewsPopularity.csv")
 ```
 
+## Subsetting the data
+We will subset the data based on the category listed in our YAML. In this case we will be using ``r paste0("data_channel_is_",params$category)``.
+```{r}
+#Subsetting our data based on the category parameter
+subset_data <- online_new_popularity_data %>% filter(!!as.name(paste0("data_channel_is_",params$category)) == 1) %>% select(-starts_with("data_channel_is"))
+
+#Setting up a simple 70/30 split for our already subset data
+sample_size <- floor(0.7 * nrow(subset_data)) 
+train_ind <- sample(seq_len(nrow(subset_data)), size = sample_size)
+
+# This will be needed later on when we start modeling
+training_data <- subset_data[train_ind,]
+test_data <- subset_data[-train_ind,]
+
+```
+
 # Summarizations
 ## EDA's
-  We will summarize our data for each `data_channel_is_*`. For consitancy we will iterate the same EDA's for each group.
+
+Now that we have our data the way we want it we will perform some EDA's to be able to get a good grasp of what our data looks like.
+
 ```{r}
-online_new_popularity_data
+summary(subset_data$shares)
 ```
+
+
 
 ## Contigency tables
 
