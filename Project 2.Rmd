@@ -50,7 +50,19 @@ test_data <- subset_data[-train_ind,]
 Now that we have our data the way we want it we will perform some EDA's to be able to get a good grasp of what our data looks like.
 
 ```{r}
-summary(subset_data$shares)
+g <- ggplot(subset_data, aes(y= shares,x = kw_avg_avg))
+g + geom_point() +
+  geom_smooth() +
+  labs(title = "number of shares vs. Average number of key words", y= "# of shares", x = "Average # of key words")
+```
+
+Let's clean up our data and exclude outliers in number of shares. This removes quite a few rows in our data but could help us get a good grasp why some articles are shared more than other.
+
+```{r}
+boxplot(subset_data$shares,horizontal = TRUE, range = 2, main = "Boxplot of shares with outliers")
+boxplot(subset_data$shares,horizontal = TRUE, range = 2, outline = FALSE,main = "Boxplot of shares without outliers")
+# We can have some pretty extreme values
+quantile(subset_data$shares)[4] + (1.5 * IQR(subset_data$shares))
 ```
 
 
