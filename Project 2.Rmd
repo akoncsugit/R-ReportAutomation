@@ -45,24 +45,75 @@ test_data <- subset_data[-train_ind,]
 ```
 
 # Summarizations
+
+Our idea is in part that what makes a link shareable is how easy it is for the content to be consumed. People want to be spoon fed information. We will test this out via proxy's. We will measure shares against average key works(kw_avg_avg),average length of words (average_token_length), average number of words in the content (n_tokens_content) ,and number of words in the title (n_tokens_title). The idea here is to measure both the quantity of words as well as the complexity of the content. i.e. an article with 500 "easy" words could be shared more than an article with 100 "difficult" words.
+
 ## EDA's
 
-Now that we have our data the way we want it we will perform some EDA's to be able to get a good grasp of what our data looks like.
-
-```{r}
-g <- ggplot(subset_data, aes(y= shares,x = kw_avg_avg))
-g + geom_point() +
-  geom_smooth() +
-  labs(title = "number of shares vs. Average number of key words", y= "# of shares", x = "Average # of key words")
-```
-
-Let's clean up our data and exclude outliers in number of shares. This removes quite a few rows in our data but could help us get a good grasp why some articles are shared more than other.
-
+First let's start off by cleaning our data. If we have any outliers we will remove them first to get an idea of what the bulk of shares come from. We will follow what the boxplot tells us when choosing what to remove.
 ```{r}
 boxplot(subset_data$shares,horizontal = TRUE, range = 2, main = "Boxplot of shares with outliers")
+
 boxplot(subset_data$shares,horizontal = TRUE, range = 2, outline = FALSE,main = "Boxplot of shares without outliers")
 # We can have some pretty extreme values
-quantile(subset_data$shares)[4] + (1.5 * IQR(subset_data$shares))
+IQR <- quantile(subset_data$shares)[4] - quantile(subset_data$shares)[2]
+upper_limit <- quantile(subset_data$shares)[4] + (1.5 * IQR)
+lower_limit <- quantile(subset_data$shares)[2] - (1.5 * IQR)
+subset_data_wo_outliers <- subset_data %>% filter(shares <= upper_limit & shares >= lower_limit)
+```
+
+After we remove any potential outliers to our data our we can compare shares our key metrics.
+```{r shares Vs Keywords average, warning=FALSE}
+correlation1 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$kw_avg_avg)
+
+plot1 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = kw_avg_avg)) + 
+  geom_point() +
+  geom_smooth() +
+  labs(title = "number of shares vs. Average number of key words", y= "# of shares", x = "Average # of key words") +
+  geom_text(color = "red",x=15000,y=5000,label = paste0("Correlation = ",round(correlation1,3)))
+
+plot1
+```
+
+We can measure the trend of shares as a function of Average number of key words. If we see a possitive trend we can say that the more key words in the articles the more likely it is to be shared, the opposite can also be said. We measure the correlation to get a more precise gauge incase the graph is not clear enough.
+
+
+```{r shares Vs Average length of words in content, warning=FALSE}
+correlation2 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$average_token_length)
+
+plot2 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = average_token_length)) +
+geom_density_2d() + 
+  labs(title = "number of shares vs. Average length of words in content", y= "# of shares", x = "Average length of words in content") +
+  geom_text(color = "red",x=5,y=3500,label = paste0("Correlation = ",round(correlation2,3)))
+
+plot2
+```
+
+With a density plot as a function of average length of words in content we see where most of our shares come from. We can utilize this to help explain our model down below.
+
+
+```{r, warning=FALSE}
+correlation3 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$n_tokens_content)
+
+plot3 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = n_tokens_content)) +
+geom_rug() +
+  labs(title = "number of shares vs. number of words in content", y= "# of shares", x = "# of words in content") +
+  geom_text(color = "red",x=4000,y=4000,label = paste0("Correlation = ",round(correlation3,3)))
+
+plot3
+```
+
+Using a rug graph we can measure the relationship between number of words in content and the number of shares. The intersection between where both rugs are highly concentrated is where how we can measure correlation. If both rugs are concentrated near zero than we see that the less words the more shareable the articles are or vice versa.
+
+```{r warning=FALSE}
+correlation4 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$n_tokens_title)
+
+plot4 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = n_tokens_title)) +
+geom_col() +
+  labs(title = "number of shares vs. number of words in title", y= "# of shares", x = "# of words in title") +
+  geom_text(color = "red",x=15,y=600000,label = paste0("Correlation = ",round(correlation4,3)))
+
+plot4
 ```
 
 
