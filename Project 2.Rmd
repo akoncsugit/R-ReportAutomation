@@ -15,7 +15,7 @@ library(knitr)
 library(rmarkdown)
 library(caret)
 library(tidyverse)
-library(dplyr)
+library(corrplot)
 ```  
 
 # Introduction
@@ -80,7 +80,7 @@ IQRs
 ```
 
 ### Correlations
-Prior to preforming any model fitting or statistical analysis it is essential to understand the potential correlation among predictors and between the response and predictors. Correlation helps identify potential colinearity and thus, allows for better canditate model selection.
+Prior to preforming any model fitting or statistical analysis it is essential to understand the potential correlation among predictors and between the response and predictors. Correlation helps identify potential collinearity and thus, allows for better candidate model selection. It is worth noting any absolute correlation values > 0.5. However, this threshold has been left to discretion of the individual.
 ```{r}
 variables <- as_tibble(attributes(train_no_url)$names) %>%
   rename(variable = "value")
@@ -90,14 +90,18 @@ round(corr, 3)
 
 Correlations <-as_tibble(corr)
 Correlations <- (rownames = attributes(train_no_url)$names)
-)
 
 corr_mat <- bind_cols(variables, Correlations)
 correlation_matrix <- column_to_rownames(corr_mat, var = "variable")
 correlation_matrix
 ```
+### Contigency tables
 
-Our idea is in part that what makes a link shareable is how easy it is for the content to be consumed. People want to be spoon fed information. We will test this out via proxy's. We will measure shares against average key works(kw_avg_avg),average length of words (average_token_length), average number of words in the content (n_tokens_content) ,and number of words in the title (n_tokens_title). The idea here is to measure both the quantity of words as well as the complexity of the content. i.e. an article with 500 "easy" words could be shared more than an article with 100 "difficult" words.
+## Graphical summaries
+
+
+
+Our idea is in part that what makes a link shareable is how easy it is for the content to be consumed. People want to be spoon fed information. We will test this out via proxy's. We will measure shares against average key words(kw_avg_avg), average length of words (average_token_length), average number of words in the content (n_tokens_content), and number of words in the title (n_tokens_title). The idea here is to measure both the quantity of words as well as the complexity of the content. i.e. an article with 500 "easy" words could be shared more than an article with 100 "difficult" words.
 
 
 
@@ -169,7 +173,7 @@ plot4
 
 
 
-## Contigency tables
+
 
 # Modeling
 
