@@ -80,7 +80,7 @@ IQRs
 ```
 
 ### Correlations
-Prior to preforming any model fitting or statistical analysis it is essential to understand the potential correlation among predictors and between the response and predictors. Correlation helps identify potential collinearity and thus, allows for better candidate model selection. It is worth noting any absolute correlation values > 0.5. However, this threshold has been left to discretion of the individual.
+Prior to preforming any model fitting or statistical analysis it is essential to understand the potential correlation among predictors and between the response and predictors. Correlation helps identify potential collinearity and thus, allows for better candidate model selection. It is worth noting any absolute correlation values > 0.5. However, this threshold has been left to discretion of the individual. The correlation matrix has been further subset into `shares` vs predictor correlations and filtered at a threshold correlation value of 0.025.
 ```{r}
 variables <- as_tibble(attributes(train_no_url)$names) %>%
   rename(variable = "value")
@@ -88,13 +88,41 @@ variables <- as_tibble(attributes(train_no_url)$names) %>%
 corr <- cor(train_no_url)
 round(corr, 3)
 
-Correlations <-as_tibble(corr)
-Correlations <- (rownames = attributes(train_no_url)$names)
+correlations <-as_tibble(corr)
+correlations <- (rownames = attributes(train_no_url)$names)
 
 corr_mat <- bind_cols(variables, Correlations)
 correlation_matrix <- column_to_rownames(corr_mat, var = "variable")
-correlation_matrix
+correlation_matrix %>% select(shares)
+
+shares_corr<- correlation_matrix %>% select(shares)
+shares_corr
+
+shares_strongest_corr <- sharesCorr %>%
+  filter(abs(shares) > 0.025 & abs(shares) !=1) %>%
+  rownames_to_column(var = "predictor") %>%
+  arrange(desc(abs(shares)))
+shares_strongest_corr
+
+# Genterates scatter plots for the strongest correlations with shares
+listPred <- as.list(shares_strongest_corr$predictor)
+
+
+corP <- function(x) {
+  var1 <- get(x, train_no_url)
+  plot(var1,  train_no_url$shares)
+}
+lapply(listPred, corP)
+
+corNoOut<- function(x) {
+  var1 <- get(x, subset_data_wo_outliers)
+  plot(var1,  subset_data_wo_outliers$shares)
+}
+lapply(listPred, corNoOut)
+
 ```
+
+
 ### Contigency tables
 
 ## Graphical summaries
