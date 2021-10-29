@@ -1,0 +1,222 @@
+---
+title: "ST558 Project 2"
+author: "Sergio Mora & Ashley Ko"
+output:
+  html_document:  
+    df_print: paged  
+params:
+  category: "lifestyle"
+---
+
+
+```{r setup, include=FALSE, message=FALSE}
+set.seed(123)
+
+#Required Packages
+library(knitr)
+library(rmarkdown)
+library(caret)
+library(tidyverse)
+library(corrplot)
+library(kableExtra)
+library(htmlTable)
+```  
+
+# Introduction
+
+# Data
+## Reading in data
+We will read in our csv dataset. As instructed we will also split our data by `data_channel_is_*`.
+```{r}
+online_new_popularity_data <- read.csv("./OnlineNewsPopularity/OnlineNewsPopularity.csv")
+```
+
+## Subsetting the data
+
+We will subset the data based on the category listed in our YAML. In this case we will be using ``r paste0("data_channel_is_",params$category)``. We will also remove non-predictors such as `url` and `timedelta`
+```{r}
+#Subsetting our data based on the category parameter and dropping non-predictors
+subset_data <- online_new_popularity_data %>%
+  filter(!!as.name(paste0("data_channel_is_",params$category)) == 1) %>%
+  select(-starts_with("data_channel_is")) %>% select(n_tokens_title:shares)
+
+```
+
+Next we will check for potential problematic values such as NA or infinity. These could result in errors with later analysis. Should a problem arise later on, this allows for a diagnoistic to rule out potential problematic values.
+```{r}
+#Checking data for NA  or infinite values
+summary <- as.data.frame(apply(subset_data, 2, function(x) any(is.na(x) | is.infinite(x))))
+colnames(summary) <- c("Is the variable NA or infinite?")
+summary %>% kable()
+```
+
+
+```{r}
+#Setting up a simple 70/30 split for our already subset data
+sample_size <- floor(0.7 * nrow(subset_data))
+train_ind <- sample(seq_len(nrow(subset_data)), size = sample_size)
+
+# This will be needed later on when we start modeling
+training_data <- subset_data[train_ind,]
+test_data <- subset_data[-train_ind,]
+```
+
+# Summarizations
+
+## Numeric Summary
+
+### Six Number Summary
+First let's perform a simple numeric summary variables to calculate a six number summary for each variable from the training data set. This summary includes minimum, 1st quartile, median, mean, 3rd quartile, and maximum values. This provides a senses of scale and range for variable values.
+```{r}
+summary(training_data)
+```
+
+### Standard Deviation
+The previous section does not generate standard deviation for the variable values. Standard deviation is necessary for determining the variance of the response and predictors. It is a good diagnostic to spot potential issues that violate assumptions necessary for models and analysis.
+```{r}
+options(scipen = 999)
+train_SDs <- sapply(training_data, sd)
+round(train_SDs, digits = 5)
+options(scipen = 0)
+```
+
+### IQR
+Although the 1st and 3rd quartiles are identified in the six number summary, it is helpful quantify the range between these two values, IQR. IQR is also needed for subsequent plotting. Binary response variables such as `weekday_is_*` and `is_weekend` have values of 0 given the nature of those predictors. 
+```{r}
+IQRs <- as_tibble(lapply(training_data, IQR))
+IQR
+```
+
+### Correlations
+Prior to preforming any model fitting or statistical analysis it is essential to understand the potential correlation among predictors and between the response and predictors. Correlation helps identify potential collinearity and thus, allows for better candidate model selection. It is worth noting any absolute correlation values > 0.5. However, this threshold has been left to discretion of the individual. The correlation matrix has been further subset into `shares` vs predictor correlations and filtered at a threshold correlation value of 0.025.
+```{r}
+variables <- as_tibble(attributes(training_data)$names) %>%
+  rename(variable = "value")
+
+corr <- cor(training_data)
+round(corr, 3)
+
+correlations <-as_tibble(corr)
+# correlations <- (rownames = attributes(training_data)$names)
+
+corr_mat <- bind_cols(variables, correlations)
+correlation_matrix <- column_to_rownames(corr_mat, var = "variable")
+
+shares_corr<- correlation_matrix %>% select(shares)
+shares_corr
+
+shares_strongest_corr <- shares_corr%>%
+  filter(abs(shares) > 0.025 & abs(shares) !=1) %>%
+  rownames_to_column(var = "predictor") %>%
+  arrange(desc(abs(shares)))
+shares_strongest_corr
+
+# Generates scatter plots for the strongest correlations with shares
+listPred <- as.list(shares_strongest_corr$predictor)
+```
+
+
+## Graphical summaries
+
+Our idea is in part that what makes a link shareable is how easy it is for the content to be consumed. People want to be spoon fed information. We will test this out via proxy's. We will measure shares against average key words(kw_avg_avg), average length of words (average_token_length), average number of words in the content (n_tokens_content), and number of words in the title (n_tokens_title). The idea here is to measure both the quantity of words as well as the complexity of the content. i.e. an article with 500 "easy" words could be shared more than an article with 100 "difficult" words.
+
+
+
+Now let's clean our data. If we have any outliers we will remove them first to get an idea of what the bulk of shares come from. We will follow what the boxplot tells us when choosing what to remove.
+```{r}
+boxplot(training_data$shares,horizontal = TRUE, range = 2, main = "Boxplot of shares with outliers")
+
+boxplot(training_data$shares,horizontal = TRUE, range = 2, outline = FALSE,main = "Boxplot of shares without outliers")
+# We can have some pretty extreme values
+IQR <- quantile(training_data$shares)[4] - quantile(subset_data$shares)[2]
+upper_limit <- quantile(training_data$shares)[4] + (1.5 * IQR)
+lower_limit <- quantile(training_data$shares)[2] - (1.5 * IQR)
+subset_data_wo_outliers <- training_data %>% filter(shares <= upper_limit & shares >= lower_limit)
+```
+
+After we remove any potential outliers to our data our we can compare shares our key metrics.
+```{r shares Vs Keywords average, warning=FALSE}
+correlation1 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$kw_avg_avg)
+
+plot1 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = kw_avg_avg)) + 
+  geom_point() +
+  geom_smooth() +
+  labs(title = "Number of shares vs. Average number of key words", y= "# of shares", x = "Average # of key words") +
+  geom_text(color = "red",x=15000,y=5000,label = paste0("Correlation = ",round(correlation1,3)))
+
+plot1
+```
+
+We can measure the trend of shares as a function of Average number of key words. If we see a possitive trend we can say that the more key words in the articles the more likely it is to be shared, the opposite can also be said. We measure the correlation to get a more precise gauge in case the graph is not clear enough.
+```{r shares Vs Average length of words in content, warning=FALSE}
+correlation2 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$average_token_length)
+
+plot2 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = average_token_length)) +
+geom_density_2d() + 
+  labs(title = "number of shares vs. Average length of words in content", y= "# of shares", x = "Average length of words in content") +
+  geom_text(color = "red",x=5,y=3500,label = paste0("Correlation = ",round(correlation2,3)))
+
+plot2
+```
+
+With a density plot as a function of average length of words in content we see where most of our shares come from. We can utilize this to help explain our model down below.
+
+```{r, warning=FALSE}
+correlation3 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$n_tokens_content)
+
+plot3 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = n_tokens_content)) +
+geom_rug() +
+  labs(title = "number of shares vs. number of words in content", y= "# of shares", x = "# of words in content") +
+  geom_text(color = "red",x=4000,y=4000,label = paste0("Correlation = ",round(correlation3,3)))
+
+plot3
+```
+
+Using a rug graph we can measure the relationship between number of words in content and the number of shares. The intersection between where both rugs are highly concentrated is where how we can measure correlation. If both rugs are concentrated near zero than we see that the less words the more shareable the articles are or vice versa.
+
+```{r warning=FALSE}
+correlation4 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$n_tokens_title)
+
+plot4 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = n_tokens_title)) +
+geom_col() +
+  labs(title = "number of shares vs. number of words in title", y= "# of shares", x = "# of words in title") +
+  geom_text(color = "red",x=15,y=600000,label = paste0("Correlation = ",round(correlation4,3)))
+
+plot4
+```
+We see how the `# of words in title` as distributed with respect to number of shares. Any large skewness would be a flag for us to research further.
+
+
+
+Here the correlation matrix with subset into `shares` vs predictor correlations and filtered at a threshold correlation value of 0.025 is used to generate plots for each shares by each predictor that meets the threshold.
+```{r}
+#Note need to probably name graphs still etc...work in progress
+corP <- function(x) {
+  var1 <- get(x, training_data)
+  plot(var1,  training_data$shares)
+}
+lapply(listPred, corP)
+
+corNoOut<- function(x) {
+  var1 <- get(x, subset_data_wo_outliers)
+  plot(var1,  subset_data_wo_outliers$shares)
+}
+lapply(listPred, corNoOut)
+```
+
+
+# Modeling
+
+Fitting our linear model with our chosen variables. We will also look at the interaction between our chosen variables.
+```{r}
+lmfit <- lm(shares ~kw_avg_avg*average_token_length*n_tokens_content*n_tokens_title, data = training_data)
+summary(lmfit)
+```
+
+With a simple linear model we can test it's goodness of fit with $R^2$. Since we are measuring human behavior we can be comfortable with a low $R^2$. However too low (although subjective) would indicate that our hypothesis is wrong. As a rule of thumb we will say:
+
+$$R^2 < .1 : we \space suspect \space that \space we \space cannot \space reject \space H_0 \\
+  R^2 \space between \space .1 \space and \space .5 \space : \space we \space suspect \space that \space we \space would \space reject \space H_0 \space \\
+  R^2 > .5 \space we \space feel \space confident \space that \space our \space variables \space are \space good \space predictors \space and \space our \space hypothesis \space is \space a \space good \space explanation.$$
+
+# Comparison
