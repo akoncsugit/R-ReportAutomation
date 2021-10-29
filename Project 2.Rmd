@@ -18,6 +18,8 @@ library(rmarkdown)
 library(caret)
 library(tidyverse)
 library(corrplot)
+library(kableExtra)
+library(htmlTable)
 ```  
 
 # Introduction
@@ -43,7 +45,9 @@ subset_data <- online_new_popularity_data %>%
 Next we will check for potential problematic values such as NA or infinity. These could result in errors with later analysis. Should a problem arise later on, this allows for a diagnoistic to rule out potential problematic values.
 ```{r}
 #Checking data for NA  or infinite values
-apply(subset_data, 2, function(x) any(is.na(x) | is.infinite(x)))
+summary <- as.data.frame(apply(subset_data, 2, function(x) any(is.na(x) | is.infinite(x))))
+colnames(summary) <- c("Is the variable NA or infinite?")
+summary %>% kable()
 ```
 
 
@@ -120,14 +124,14 @@ Our idea is in part that what makes a link shareable is how easy it is for the c
 
 Now let's clean our data. If we have any outliers we will remove them first to get an idea of what the bulk of shares come from. We will follow what the boxplot tells us when choosing what to remove.
 ```{r}
-boxplot(subset_data$shares,horizontal = TRUE, range = 2, main = "Boxplot of shares with outliers")
+boxplot(training_data$shares,horizontal = TRUE, range = 2, main = "Boxplot of shares with outliers")
 
-boxplot(subset_data$shares,horizontal = TRUE, range = 2, outline = FALSE,main = "Boxplot of shares without outliers")
+boxplot(training_data$shares,horizontal = TRUE, range = 2, outline = FALSE,main = "Boxplot of shares without outliers")
 # We can have some pretty extreme values
-IQR <- quantile(subset_data$shares)[4] - quantile(subset_data$shares)[2]
-upper_limit <- quantile(subset_data$shares)[4] + (1.5 * IQR)
-lower_limit <- quantile(subset_data$shares)[2] - (1.5 * IQR)
-subset_data_wo_outliers <- subset_data %>% filter(shares <= upper_limit & shares >= lower_limit)
+IQR <- quantile(training_data$shares)[4] - quantile(subset_data$shares)[2]
+upper_limit <- quantile(training_data$shares)[4] + (1.5 * IQR)
+lower_limit <- quantile(training_data$shares)[2] - (1.5 * IQR)
+subset_data_wo_outliers <- training_data %>% filter(shares <= upper_limit & shares >= lower_limit)
 ```
 
 After we remove any potential outliers to our data our we can compare shares our key metrics.
@@ -180,6 +184,9 @@ geom_col() +
 
 plot4
 ```
+We see how the `# of words in title` as distributed with respect to number of shares. Any large skewness would be a flag for us to research further.
+
+
 
 Here the correlation matrix with subset into `shares` vs predictor correlations and filtered at a threshold correlation value of 0.025 is used to generate plots for each shares by each predictor that meets the threshold.
 ```{r}
@@ -198,8 +205,19 @@ lapply(listPred, corNoOut)
 ```
 
 
-
-
 # Modeling
+
+Fitting our linear model with our chosen variables. We will also look at the interaction between our chosen variables.
+```{r}
+lmfit <- lm(shares ~kw_avg_avg*average_token_length*n_tokens_content*n_tokens_title, data = training_data)
+summary(lmfit)
+```
+
+With a simple linear model we can test it's goodness of fit with $R^2$. Since we are measuring human behavior we can be comfortable with a low $R^2$. However too low (although subjective) would indicate that our hypothesis is wrong. As a rule of thumb we will say:
+
+$$R^2 < .1 : we \space suspect \space that \space we \space cannot \space reject \space H_0 \\
+  R^2 \space between \space .1 \space and \space .5 \space : \space we \space suspect \space that \space we \space would \space reject \space H_0 \space \\
+  R^2 > .5 \space we \space feel \space confident \space that \space our \space variables \space are \space good \space predictors \space and \space our \space hypothesis \space is \space a \space good \space explanation.$$
+
 
 # Comparison
