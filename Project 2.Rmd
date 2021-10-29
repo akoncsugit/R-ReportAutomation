@@ -95,8 +95,8 @@ Prior to preforming any model fitting or statistical analysis it is essential to
 ```{r}
 variables <- as_tibble(attributes(training_data)$names) %>%
   rename(variable = "value")
-
-correlations <- as_tibble(round(cor(training_data), 3))
+corr <- cor(training_data)
+correlations <- as_tibble(round(corr, 3))
 corr_mat <- bind_cols(variables, correlations)
 correlation_matrix <- column_to_rownames(corr_mat, var = "variable")
 
@@ -179,17 +179,22 @@ We see how the `# of words in title` as distributed with respect to number of sh
 
 ```{r}
 #Note need to probably name graphs still etc...work in progress
-corrplot(cor(training_data))
+
+corrplot(cor(training_data), tl.col = "black")
+
 ```
 One thought is that shares might increase based depending on whether the post was created on a weekend or weekday. Perhaps, weekend posts are shared more frequently as, generally, people have more screen time and thus are more apt to share article. This section `shares` has been scaled and density plotted by `is_weekend` as a factor where 0 is a weekday and 1 is a weekend day.
 ```{r}
-weekend_factor <- training_data %>%
-  mutate(weekend = as.factor(is_weekend)) %>%
-  mutate(shares = shares/(2*sd(shares))) %>% select(weekend, shares)
-
-g <- ggplot(weekend_factor, aes(x=shares))
-g + geom_density(adjust = 0.5, alpha = 0.5, aes(fill = weekend),
-                 position = "stack") 
+options(scipen = 999)
+weekend_factor <- subset_data_wo_outliers %>%
+  mutate(weekend = as.factor(is_weekend)) %>% select(weekend, shares)
+g <- ggplot(weekend_factor, aes(x=shares)) +  xlab("Number of Shares") +
+  ylab("Density")
+g + geom_histogram(aes(y = ..density.., fill = weekend)) + 
+  geom_density(adjust = 0.25, alpha = 0.5, aes(fill = weekend), position = "stack") +
+  labs(title = "Density of Shares: Weekday vs. Weekend") + 
+  scale_fill_discrete(name = "Weekday or Weekend?", labels = c("Weekday", "Weekend"))
+options(scipen = 0)
 ```
 
 ```{r}
