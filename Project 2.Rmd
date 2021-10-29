@@ -40,8 +40,8 @@ subset_data <- online_new_popularity_data %>%
   filter(!!as.name(paste0("data_channel_is_",params$category)) == 1) %>%
   select(n_tokens_title, n_tokens_content, num_imgs:average_token_length,
          kw_avg_avg, is_weekend, global_subjectivity, global_sentiment_polarity, 
-         global_rate_negative_words, avg_negative_polarity,
-         abs_title_subjectivity:shares)
+         global_rate_negative_words, avg_negative_polarity, abs_title_subjectivity,
+         abs_title_sentiment_polarity, shares)
 ```
 
 Next we will check for potential problematic values such as NA or infinity. These could result in errors with later analysis. Should a problem arise later on, this allows for a diagnostic to rule out potential problematic values.
@@ -198,11 +198,20 @@ options(scipen = 0)
 ```
 
 ```{r}
-g + stat_ecdf(geom = "step", aes(color = weekend)) +
-  ylab("ECDF")
 
-g + geom_histogram(aes(y = ..density.., fill = weekend)) + 
-  geom_density(adjust = 0.25, alpha = 0.5, aes(fill = weekend), position = "stack") 
+corNoOut<- function(x) {
+  var1 <- get(x, subset_data_wo_outliers)
+  g <- ggplot(subset_data_wo_outliers, aes(x = var1, y = shares)) + 
+    geom_point() +
+    geom_smooth() +
+    geom_smooth(method = lm, col = "Red") 
+  g
+}
+sentiment_preds <- list("global_subjectivity", "global_sentiment_polarity",
+"global_rate_negative_words", "avg_negative_polarity",
+"abs_title_subjectivity", "abs_title_sentiment_polarity")
+lapply(sentiment_preds, corNoOut)
+
 ```
 
 
