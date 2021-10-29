@@ -37,13 +37,6 @@ We will subset the data based on the category listed in our YAML. In this case w
 subset_data <- online_new_popularity_data %>%
   filter(!!as.name(paste0("data_channel_is_",params$category)) == 1) %>%
   select(-starts_with("data_channel_is")) %>% select(n_tokens_title:shares)
-
-```
-
-Next we will check for potential problematic values such as NA or infinity. These could result in errors with later analysis. Should a problem arise later on, this allows for a diagnoistic to rule out potential problematic values.
-```{r}
-#Checking data for NA  or infinite values
-apply(subset_data, 2, function(x) any(is.na(x) | is.infinite(x)))
 ```
 
 
@@ -64,7 +57,8 @@ test_data <- subset_data[-train_ind,]
 ### Six Number Summary
 First let's perform a simple numeric summary variables to calculate a six number summary for each variable from the training data set. This summary includes minimum, 1st quartile, median, mean, 3rd quartile, and maximum values. This provides a senses of scale and range for variable values.
 ```{r}
-summary(training_data)
+summary <- summary(training_data)
+summary
 ```
 
 ### Standard Deviation
@@ -93,7 +87,6 @@ corr <- cor(training_data)
 round(corr, 3)
 
 correlations <-as_tibble(corr)
-# correlations <- (rownames = attributes(training_data)$names)
 
 corr_mat <- bind_cols(variables, correlations)
 correlation_matrix <- column_to_rownames(corr_mat, var = "variable")
@@ -143,7 +136,7 @@ plot1 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = kw_avg_avg)) +
 plot1
 ```
 
-We can measure the trend of shares as a function of Average number of key words. If we see a possitive trend we can say that the more key words in the articles the more likely it is to be shared, the opposite can also be said. We measure the correlation to get a more precise gauge in case the graph is not clear enough.
+We can measure the trend of shares as a function of Average number of key words. If we see a positive trend we can say that the more key words in the articles the more likely it is to be shared, the opposite can also be said. We measure the correlation to get a more precise gauge in case the graph is not clear enough.
 ```{r shares Vs Average length of words in content, warning=FALSE}
 correlation2 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$average_token_length)
 
@@ -184,12 +177,6 @@ plot4
 Here the correlation matrix with subset into `shares` vs predictor correlations and filtered at a threshold correlation value of 0.025 is used to generate plots for each shares by each predictor that meets the threshold.
 ```{r}
 #Note need to probably name graphs still etc...work in progress
-corP <- function(x) {
-  var1 <- get(x, training_data)
-  plot(var1,  training_data$shares)
-}
-lapply(listPred, corP)
-
 corNoOut<- function(x) {
   var1 <- get(x, subset_data_wo_outliers)
   plot(var1,  subset_data_wo_outliers$shares)
@@ -197,7 +184,24 @@ corNoOut<- function(x) {
 lapply(listPred, corNoOut)
 ```
 
+One thought is that shares might increase based depending on whether the post was created on a weekend or weekday. Perhaps, weekend posts are shared more frequently as, generally, people have more screen time and thus are more apt to share article. This section `shares` has been scaled and density plotted by `is_weekend` as a factor where 0 is a weekday and 1 is a weekend day.
+```{r}
+weekend_factor <- training_data %>%
+  mutate(weekend = as.factor(is_weekend)) %>%
+  mutate(shares = shares/(2*sd(shares))) %>% select(weekend, shares)
 
+g <- ggplot(weekend_factor, aes(x=shares))
+g + geom_density(adjust = 0.5, alpha = 0.5, aes(fill = weekend),
+                 position = "stack") 
+```
+
+```{r}
+g + stat_ecdf(geom = "step", aes(color = weekend)) +
+  ylab("ECDF")
+
+g + geom_histogram(aes(y = ..density.., fill = weekend)) + 
+  geom_density(adjust = 0.25, alpha = 0.5, aes(fill = weekend), position = "stack") 
+```
 
 
 # Modeling
