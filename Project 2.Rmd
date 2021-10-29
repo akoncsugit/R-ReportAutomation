@@ -38,16 +38,10 @@ We will subset the data based on the category listed in our YAML. In this case w
 #Subsetting our data based on the category parameter and dropping non-predictors
 subset_data <- online_new_popularity_data %>%
   filter(!!as.name(paste0("data_channel_is_",params$category)) == 1) %>%
-  select(-starts_with("data_channel_is")) %>% select(global_subjectivity, 
-                                                     global_sentiment_polarity, 
-                                                     global_rate_positive_words,
-                                                     global_rate_negative_words,
-                                                     rate_positive_words,
-                                                     rate_negative_words,
-                                                     avg_positive_polarity,
-                                                     avg_negative_polarity,
-                                                     abs_title_subjectivity:shares)
-
+  select(n_tokens_title, n_tokens_content, num_imgs:average_token_length,
+         kw_avg_avg, is_weekend, global_subjectivity, global_sentiment_polarity, 
+         global_rate_negative_words, avg_negative_polarity,
+         abs_title_subjectivity:shares)
 ```
 
 Next we will check for potential problematic values such as NA or infinity. These could result in errors with later analysis. Should a problem arise later on, this allows for a diagnostic to rule out potential problematic values.
@@ -84,7 +78,7 @@ summary
 The previous section does not generate standard deviation for the variable values. Standard deviation is necessary for determining the variance of the response and predictors. It is a good diagnostic to spot potential issues that violate assumptions necessary for models and analysis.
 ```{r}
 options(scipen = 999)
-train_SDs <- sapply(training_data, sd)
+train_SDs <- as_tibble(lapply(training_data[, 1:14], sd))
 round(train_SDs, digits = 5)
 options(scipen = 0)
 ```
@@ -92,7 +86,7 @@ options(scipen = 0)
 ### IQR
 Although the 1st and 3rd quartiles are identified in the six number summary, it is helpful quantify the range between these two values, IQR. IQR is also needed for subsequent plotting. Binary response variables such as `weekday_is_*` and `is_weekend` have values of 0 given the nature of those predictors. 
 ```{r}
-IQR<- as_tibble(lapply(training_data[ , 1:11], IQR))
+IQR<- as_tibble(lapply(training_data[, 1:14], IQR))
 IQR
 ```
 
