@@ -219,5 +219,4 @@ $$R^2 < .1 : we \space suspect \space that \space we \space cannot \space reject
   R^2 \space between \space .1 \space and \space .5 \space : \space we \space suspect \space that \space we \space would \space reject \space H_0 \space \\
   R^2 > .5 \space we \space feel \space confident \space that \space our \space variables \space are \space good \space predictors \space and \space our \space hypothesis \space is \space a \space good \space explanation.$$
 
-
 # Comparison
