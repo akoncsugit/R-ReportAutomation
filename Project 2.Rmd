@@ -7,7 +7,6 @@ output:
 params:
   category: "lifestyle"
 ---
-
 ```{r setup, include=FALSE, message=FALSE}
 set.seed(123)
 
@@ -17,35 +16,36 @@ library(rmarkdown)
 library(caret)
 library(tidyverse)
 library(corrplot)
-library(htmlTable)
+#library(htmlTable)
 library(tree)
 ```  
 
 # Introduction
-This project analyzes and creates predictions for online news popularity data sets about articles from Mashable. The goal is to predict the number of `shares` based on data from one of six different `data_channels` (lifestyle, entertainment, business, social media, tech, world). A description and summary of this data set, `OnlineNewsPopularity.csv` can be found here [Online News Popularity Data Set](https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity).
+This project summarizes and create and compares predictions for online news popularity data sets about articles from Mashable. The goal is to predict the number of `shares` for each of the six data channels (lifestyle, entertainment, business, social media, tech, world). A description and summary of this data set, `OnlineNewsPopularity.csv` can be found here [Online News Popularity Data Set](https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity).
 
-In order to achieve this goal, we first subset data based on predictors we hypothesis to have an impact the number of shares of an article. We selected to look at the following predictors `n_tokens_title`, `n_tokens_content`, `num_imgs`, `num_videos`, `average_token_length`, `kw_avg_avg`, `is_weekend`, `global_subjectivity`, `global_sentiment_polarity`, `global_rate_negative_words`, `avg_negative_polarity`, `abs_title_subjectivity`, `abs_title_sentiment_polarity`. 
+In order to achieve this goal, we first subset data based on predictors we hypothesize to have an impact the number of shares of per article. We choose following predictors `n_tokens_title`, `n_tokens_content`, `num_imgs`, `num_videos`, `average_token_length`, `kw_avg_avg`, `is_weekend`, `global_subjectivity`, `global_sentiment_polarity`, `global_rate_negative_words`, `avg_negative_polarity`, `abs_title_subjectivity`, `abs_title_sentiment_polarity`.
 
-First, we selected average key words(kw_avg_avg), average length of words (average_token_length), content (n_tokens_content),  and title (n_tokens_title) as metrics for the readability of an article. We believe that easier to read articles might be more likely to be shared. In tandem with readability, articles with more images(num_imgs) and videos(num_videos) might be easier to consume and more likely shared. It is possible that increased shares is linked whether the article as published on a weekday or weekend (is_weekend). Generally speaking, people have more more free time on the weekends which leads to more screen-time and perhaps, more articles being shared. Lastly, emotionally charged content is often compelling so we investigated the impact of the subjectivity(global_subjective and abs_title_subjectivity), sentiment polarity(global_sentiment_polarity and abs_title_sentiment_polarity), and negative word rate (global_rate_negative_words).
+First, we selected average key words(kw_avg_avg), average length of words (average_token_length), content (n_tokens_content), and title (n_tokens_title) as metrics for the readability of an article. We believe that easy to read articles might be more likely to be shared. In tandem with readability, articles with more images(num_imgs) and videos(num_videos) might be easier to consume and more likely shared. It is possible that the number of shares is linked whether an article is published on a weekday or weekend (is_weekend). Generally speaking, people have more more free time on the weekends which leads to more screen-time and perhaps, more articles being shared. Lastly, emotionally charged content is often compelling so we investigated the impact of the subjectivity(global_subjective and abs_title_subjectivity), sentiment polarity(global_sentiment_polarity and abs_title_sentiment_polarity), and negative word rate (global_rate_negative_words).
 
-A variety of numerical and graphic summaries have been used to display our chosen predictors and their relationship to...
+A variety of numerical and graphic summaries have been used to display our chosen predictors and their relationship to the number of shares for the training data set. We generated the following numeric summaries minimums, 1st quartiles, medians, means, 3rd quartiles, maximums, standard deviations, IQRs, and correlations. Additionally, we used correlation plots, box plots, rug plots, and a few others to visualize the training. We used both linear models and ensemble methods (random forest and boosted tree) to generate predictions.
 
-
-# Set-Up
+## Libraries and Set-Up
 This report uses the a `set.seed(123)` and the following libraries `knitr`, `rmarkdown`, `caret`, `tidyvers`, `corrplot`, `htmlTable`,  and`tree`.
 
 # Data
 ## Reading in data
 We will read in our csv dataset. As instructed we will also split our data by `data_channel_is_*`.
 ```{r data-import}
+#Reads in csv file `OnlineNewsPopularity/OnlineNewsPopularity.csv` to produce a data frame
 online_new_popularity_data <- read.csv("./OnlineNewsPopularity/OnlineNewsPopularity.csv")
 ```
 
 ## Subsetting the data
-
-We will subset the data based on the category listed in our YAML. In this case we will be using ``r paste0("data_channel_is_",params$category)``. We will also remove non-predictors such as `url` and `timedelta`
+We will subset the data based on the category listed in our YAML header. In this case, using data from ``r paste0("data_channel_is_",params$category)``. We will remove non-predictors such as `url` and `timedelta` and selected our desired predictors** and `shares`.
+**`n_tokens_title`, `n_tokens_content`, `num_imgs`, `num_videos`, `average_token_length`, `kw_avg_avg`, `is_weekend`, `global_subjectivity`, `global_sentiment_polarity`, `global_rate_negative_words`, `avg_negative_polarity`, `abs_title_subjectivity`, `abs_title_sentiment_polarity`
 ```{r subsetting-data}
-#Subsetting our data based on the category parameter and dropping non-predictors
+# Subsetting our data based on the category parameter, dropping non-predictors,
+# and subsetting for desired predictors and response variables
 subset_data <- online_new_popularity_data %>%
   filter(!!as.name(paste0("data_channel_is_",params$category)) == 1) %>%
   select(n_tokens_title, n_tokens_content, num_imgs:average_token_length,
@@ -54,17 +54,18 @@ subset_data <- online_new_popularity_data %>%
          abs_title_sentiment_polarity, shares)
 ```
 
-Next we will check for potential problematic values such as NA or infinity. These could result in errors with later analysis. Should a problem arise later on, this allows for a diagnostic to rule out potential problematic values.
+Next, we will check for potential problematic values such as NA or infinity. These could result in errors with later analysis. Should a problem arise later on, this allows for a diagnostic to rule out potential problematic values.
 ```{r diagnoistic-NA-infinite}
-#Checking data for NA  or infinite values
+# Checking data for NA  or infinite values
 na_or_infinite <- as.data.frame(apply(subset_data, 2, function(x) any(is.na(x) | is.infinite(x))))
 colnames(na_or_infinite) <- c("NA or Infinite values")
 na_or_infinite %>% kable()
 ```
 
-
+In this chunk, we will split our newly subset data frame into training and test data sets.
+We will use a simple 70/30 split
 ```{r data-splitting-train-train}
-#Setting up a simple 70/30 split for our already subset data
+# Setting up a simple 70/30 split for our already subset data
 sample_size <- floor(0.7 * nrow(subset_data))
 train_ind <- sample(seq_len(nrow(subset_data)), size = sample_size)
 
@@ -76,37 +77,48 @@ test_data <- subset_data[-train_ind,]
 # Summarizations
 
 ## Numeric Summary
-
 ### Six Number Summary
-First let's perform a simple numeric summary variables to calculate a six number summary for each variable from the training data set. This summary includes minimum, 1st quartile, median, mean, 3rd quartile, and maximum values. This provides a senses of scale and range for variable values.
+First, let's perform a simple six number summary of all vvariables from the training data set. This summary includes minimum, 1st quartile, median, mean, 3rd quartile, and maximum values. This provides a senses of scale and range for variable values. Note: Binary response variable`is_weekend` has as values of 0 or 1. 
 ```{r six-num-sum}
+#Generates a six number summary from training_data
 summary <- summary(training_data)
 summary
 ```
 
 ### Standard Deviation
-The previous section does not generate standard deviation for the variable values. Standard deviation is necessary for determining the variance of the response and predictors. It is a good diagnostic to spot potential issues that violate assumptions necessary for models and analysis.
+The previous section does not generate standard deviation for the variable values. Standard deviation is necessary for determining the variance of the response and predictors. It is a good diagnostic to spot potential issues that violate assumptions necessary for models and analysis. Here we will produce standard deviations for each variable from `training_data.` Note: Binary response variable`is_weekend` has as values of 0 or 1. 
 ```{r sd-calculations}
+# Removes scientific notation for readability
 options(scipen = 999)
+
+# Generates and rounds (for simplicity) standard deviation
 train_SDs <- as_tibble(lapply(training_data[, 1:14], sd))
 round(train_SDs, digits = 5)
+
+# Turns scientific notation on
 options(scipen = 0)
 ```
 
 ### IQR
-Although the 1st and 3rd quartiles are identified in the six number summary, it is helpful quantify the range between these two values, IQR. IQR is also needed for subsequent plotting. Binary response variable`is_weekend` has a value of 0 given the nature of those predictors. 
+Although the 1st and 3rd quartiles are identified in the six number summary, it is helpful quantify the range between these two values or IQR. IQR is also needed for subsequent plotting. Note: Binary response variable`is_weekend` has as values of 0 or 1. 
 ```{r IQR}
+# Uses lapply to generate IQR for all variables in training_data
 IQR<- as_tibble(lapply(training_data[, 1:14], IQR))
 IQR
 ```
 
 ### Correlations
-Prior to preforming any model fitting or statistical analysis it is essential to understand the potential correlation among predictors and between the response and predictors. Correlation helps identify potential collinearity and thus, allows for better candidate model selection. It is worth noting any absolute correlation values > 0.5. However, this threshold has been left to discretion of the individual.
+Prior to preforming any model fitting or statistical analysis, it is essential to understand the potential correlation among predictors and between the response and predictors. Correlation helps identify potential collinearity and, thus, allows for better candidate model selection. It is worth noting any absolute correlation values > 0.5. However, this threshold has been left to discretion of the individual.
 ```{r correlations}
+# Creating a data frame of a single column of variable names 
 variables <- as_tibble(attributes(training_data)$names) %>%
   rename(variable = "value")
+
+# Generates correlations for all variables in training_data
 corr <- cor(training_data)
 correlations <- as_tibble(round(corr, 3))
+
+# Binds the variable names to the correlation data frame
 corr_mat <- bind_cols(variables, correlations)
 correlation_matrix <- column_to_rownames(corr_mat, var = "variable")
 
@@ -116,16 +128,18 @@ correlation_matrix
 
 ## Graphical summaries
 
-Our idea is in part that what makes a link shareable is how easy it is for the content to be consumed. People want to be spoon fed information. We will test this out via proxy's. We will measure shares against average key words(kw_avg_avg), average length of words (average_token_length), average number of words in the content (n_tokens_content), and number of words in the title (n_tokens_title). The idea here is to measure both the quantity of words as well as the complexity of the content. i.e. an article with 500 "easy" words could be shared more than an article with 100 "difficult" words.
+We suppose that part of what makes a link shareable is how easy it is for the content to be consumed. Smaller, bite sized information, in a simple writing style might be easier to process and result in more shares.
+We will test this out via proxy's. We will measure shares against average key words(kw_avg_avg), average length of words (average_token_length), average number of words in the content (n_tokens_content), and number of words in the title (n_tokens_title). The idea here is to measure both the quantity of words as well as the complexity of the content. i.e. an article with 500 "easy" words could be shared more than an article with 100 "difficult" words.
 
-
-
-Now let's clean our data. If we have any outliers we will remove them first to get an idea of what the bulk of shares come from. We will follow what the boxplot tells us when choosing what to remove.
+### Improving graphical summaries - Cutlier check 
+To produce graphs and plots that give an accurate sense of the data, we will search for potential. If we have any outliers we will remove them first to get an idea of what the bulk of shares come from. We will follow what the boxplot tells us when choosing what to remove.
 ```{r boxplot-outliers}
+# Boxplot from training_data
 boxplot(training_data$shares,horizontal = TRUE, range = 2, main = "Boxplot of shares with outliers")
 
 boxplot(training_data$shares,horizontal = TRUE, range = 2, outline = FALSE,main = "Boxplot of shares without outliers")
-# We can have some pretty extreme values
+
+# Creates a subset of training data without outliers for #plotting purposes
 IQR <- quantile(training_data$shares)[4] - quantile(subset_data$shares)[2]
 upper_limit <- quantile(training_data$shares)[4] + (1.5 * IQR)
 lower_limit <- quantile(training_data$shares)[2] - (1.5 * IQR)
@@ -133,7 +147,7 @@ subset_data_wo_outliers <- training_data %>% filter(shares <= upper_limit & shar
 ```
 
 After we remove any potential outliers to our data our we can compare shares our key metrics.
-```{r Shares vs Keywords average, warning=FALSE}
+```{r shares-vs-keywords-average, warning=FALSE}
 correlation1 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$kw_avg_avg)
 
 plot1 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = kw_avg_avg)) + 
@@ -146,7 +160,7 @@ plot1
 ```
 
 We can measure the trend of shares as a function of Average number of key words. If we see a possitive trend we can say that the more key words in the articles the more likely it is to be shared, the opposite can also be said. We measure the correlation to get a more precise gauge in case the graph is not clear enough.
-```{r Shares vs Average length of words in content, warning=FALSE}
+```{r shares-vs-average-length-of-words-in-content, warning=FALSE}
 correlation2 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$average_token_length)
 
 plot2 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = average_token_length)) +
@@ -185,12 +199,12 @@ plot4
 We see how the `# of words in title` as distributed with respect to number of shares. Any large skewness would be a flag for us to research further.
 
 
-
-
+Here we graphically depict the correlations among the variables in the training data.
 ```{r correlation-plot}
-#Note need to probably name graphs still etc...work in progress
+# Note need to probably name graphs still etc...work in progress
 corrplot(cor(training_data), tl.col = "black")
 ```
+
 One thought is that shares might increase based depending on whether the post was created on a weekend or weekday. Perhaps, weekend posts are shared more frequently as, generally, people have more screen time and thus are more apt to share article. This section `shares` has been scaled and density plotted by `is_weekend` as a factor where 0 is a weekday and 1 is a weekend day.
 ```{r shares-weekend-plot}
 options(scipen = 999)
