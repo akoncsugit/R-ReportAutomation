@@ -8,7 +8,6 @@ params:
   category: "lifestyle"
 ---
 
-
 ```{r setup, include=FALSE, message=FALSE}
 set.seed(123)
 
@@ -23,6 +22,17 @@ library(tree)
 ```  
 
 # Introduction
+This project analyzes and creates predictions for online news popularity data sets about articles from Mashable. The goal is to predict the number of `shares` based on data from one of six different `data_channels` (lifestyle, entertainment, business, social media, tech, world). A description and summary of this data set, `OnlineNewsPopularity.csv` can be found here [Online News Popularity Data Set](https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity).
+
+In order to achieve this goal, we first subset data based on predictors we hypothesis to have an impact the number of shares of an article. We selected to look at the following predictors `n_tokens_title`, `n_tokens_content`, `num_imgs`, `num_videos`, `average_token_length`, `kw_avg_avg`, `is_weekend`, `global_subjectivity`, `global_sentiment_polarity`, `global_rate_negative_words`, `avg_negative_polarity`, `abs_title_subjectivity`, `abs_title_sentiment_polarity`. 
+
+First, we selected average key words(kw_avg_avg), average length of words (average_token_length), content (n_tokens_content),  and title (n_tokens_title) as metrics for the readability of an article. We believe that easier to read articles might be more likely to be shared. In tandem with readability, articles with more images(num_imgs) and videos(num_videos) might be easier to consume and more likely shared. It is possible that increased shares is linked whether the article as published on a weekday or weekend (is_weekend). Generally speaking, people have more more free time on the weekends which leads to more screen-time and perhaps, more articles being shared. Lastly, emotionally charged content is often compelling so we investigated the impact of the subjectivity(global_subjective and abs_title_subjectivity), sentiment polarity(global_sentiment_polarity and abs_title_sentiment_polarity), and negative word rate (global_rate_negative_words).
+
+A variety of numerical and graphic summaries have been used to display our chosen predictors and their relationship to...
+
+
+# Set-Up
+This report uses the a `set.seed(123)` and the following libraries `knitr`, `rmarkdown`, `caret`, `tidyvers`, `corrplot`, `htmlTable`,  and`tree`.
 
 # Data
 ## Reading in data
@@ -84,7 +94,7 @@ options(scipen = 0)
 ```
 
 ### IQR
-Although the 1st and 3rd quartiles are identified in the six number summary, it is helpful quantify the range between these two values, IQR. IQR is also needed for subsequent plotting. Binary response variables such as `weekday_is_*` and `is_weekend` have values of 0 given the nature of those predictors. 
+Although the 1st and 3rd quartiles are identified in the six number summary, it is helpful quantify the range between these two values, IQR. IQR is also needed for subsequent plotting. Binary response variable`is_weekend` has a value of 0 given the nature of those predictors. 
 ```{r IQR}
 IQR<- as_tibble(lapply(training_data[, 1:14], IQR))
 IQR
@@ -303,6 +313,8 @@ boostTree <-train(shares ~ ., data = training_data, method = "gbm",
 
 Here are results of the cross-validation for selecting the best model.
 ```{r Boosted-Tree-Results}
+#Plot of RMSE by Max Tree Depth
+plot(boostTree)
 #Results from model training
 boostTree$results
 ```
