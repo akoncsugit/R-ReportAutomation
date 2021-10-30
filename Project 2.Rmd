@@ -18,11 +18,6 @@ library(rmarkdown)
 library(caret)
 library(tidyverse)
 library(corrplot)
-#<<<<<<< HEAD
-library(kableExtra)
-#=======
-#library(kableExtra)
-#>>>>>>> 21aff4294060861eac4e1fcae7cdc0a24ad6bd37
 library(htmlTable)
 library(tree)
 ```  
@@ -52,13 +47,9 @@ subset_data <- online_new_popularity_data %>%
 Next we will check for potential problematic values such as NA or infinity. These could result in errors with later analysis. Should a problem arise later on, this allows for a diagnostic to rule out potential problematic values.
 ```{r}
 #Checking data for NA  or infinite values
-summary <- as.data.frame(apply(subset_data, 2, function(x) any(is.na(x) | is.infinite(x))))
-#<<<<<<< HEAD
-colnames(summary) <- c("Is the variable NA or infinite?")
-#=======
-colnames(summary) <- c("NA or Infinite values")
-#>>>>>>> 21aff4294060861eac4e1fcae7cdc0a24ad6bd37
-summary %>% kable()
+na_or_infinite <- as.data.frame(apply(subset_data, 2, function(x) any(is.na(x) | is.infinite(x))))
+colnames(na_or_infinite) <- c("NA or Infinite values")
+na_or_infinite %>% kable()
 ```
 
 
@@ -184,10 +175,7 @@ plot4
 We see how the `# of words in title` as distributed with respect to number of shares. Any large skewness would be a flag for us to research further.
 
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 21aff4294060861eac4e1fcae7cdc0a24ad6bd37
 
 ```{r}
 #Note need to probably name graphs still etc...work in progress
@@ -228,31 +216,58 @@ lapply(sentiment_preds, corNoOut)
 
 
 # Modeling
-<<<<<<< HEAD
+
+## Linear Models
 
 Fitting our linear model with our chosen variables. We will also look at the interaction between our chosen variables.
+
 ```{r}
-lmfit <- lm(shares ~kw_avg_avg*average_token_length*n_tokens_content*n_tokens_title, data = training_data)
-summary(lmfit)
+lmfit1 <- lm(shares ~kw_avg_avg*average_token_length*n_tokens_content*n_tokens_title, data = training_data)
+summary(lmfit1)
+```
+
+Using the `data_source_is_lifestyle` as base data source, the following chunk of code was run and to determine potential significant additive and interaction terms by t tests for significance with p-values less than or equal to 0.05. The subsequent model was selected for this report:
+`lm(shares ~ n_tokens_content + num_imgs + num_videos + average_token_length + 
+               kw_avg_avg + global_sentiment_polarity + global_rate_negative_words + kw_avg_avg + 
+                abs_title_sentiment_polarity + global_subjectivity + 
+                n_tokens_content:num_imgs + n_tokens_content:num_videos + 
+                n_tokens_content:average_token_length + n_tokens_content:kw_avg_avg + 
+                n_tokens_content:global_sentiment_polarity + 
+                n_tokens_content:global_rate_negative_words + num_imgs:kw_avg_avg + 
+                num_imgs:abs_title_sentiment_polarity + num_videos:average_token_length + 
+                num_videos:global_subjectivity + num_videos:global_sentiment_polarity + 
+                num_videos:global_rate_negative_words + num_videos:abs_title_sentiment_polarity,
+              data = training_data)`
+```{r, eval = FALSE}
+lm_full <- lm(shares ~ .^2, data = training_data)
+summary(lm_full)
+```
+
+```{r}
+lmfit2 <- lm(shares ~ n_tokens_content + num_imgs + num_videos + average_token_length + 
+               kw_avg_avg + global_sentiment_polarity + global_rate_negative_words + kw_avg_avg + 
+                abs_title_sentiment_polarity + global_subjectivity + 
+                n_tokens_content:num_imgs + n_tokens_content:num_videos + 
+                n_tokens_content:average_token_length + n_tokens_content:kw_avg_avg + 
+                n_tokens_content:global_sentiment_polarity + 
+                n_tokens_content:global_rate_negative_words + num_imgs:kw_avg_avg + 
+                num_imgs:abs_title_sentiment_polarity + num_videos:average_token_length + 
+                num_videos:global_subjectivity + num_videos:global_sentiment_polarity + 
+                num_videos:global_rate_negative_words + num_videos:abs_title_sentiment_polarity,
+              data = training_data)
+summary(lmfit2)
 ```
 
 With a simple linear model we can test it's goodness of fit with $R^2$. Since we are measuring human behavior we can be comfortable with a low $R^2$. However too low (although subjective) would indicate that our hypothesis is wrong. As a rule of thumb we will say:
 
-=======
 
-Fitting our linear model with our chosen variables. We will also look at the interaction between our chosen variables.
-```{r}
-lmfit <- lm(shares ~kw_avg_avg*average_token_length*n_tokens_content*n_tokens_title, data = training_data)
-summary(lmfit)
-```
-
-With a simple linear model we can test it's goodness of fit with $R^2$. Since we are measuring human behavior we can be comfortable with a low $R^2$. However too low (although subjective) would indicate that our hypothesis is wrong. As a rule of thumb we will say:
-
->>>>>>> 21aff4294060861eac4e1fcae7cdc0a24ad6bd37
 $$R^2 < .1 : we \space suspect \space that \space we \space cannot \space reject \space H_0 \\
   R^2 \space between \space .1 \space and \space .5 \space : \space we \space suspect \space that \space we \space would \space reject \space H_0 \space \\
   R^2 > .5 \space we \space feel \space confident \space that \space our \space variables \space are \space good \space predictors \space and \space our \space hypothesis \space is \space a \space good \space explanation.$$
 
+## Ensemble Methods
+
+### Random Forest
 We can now fit our model above into a tree function. This will give us a better picture of where our variables are most important in our model.
 ```{r}
 fitTree <- tree(shares ~kw_avg_avg + average_token_length + n_tokens_content + n_tokens_title, data = training_data)
@@ -262,10 +277,10 @@ text(fitTree)
 
 We are able to use the tree function to see where our variables are most important and in what order. This could change based on subject.
 
-
 We can kick off a random forest model in our to see if adding this level of complexity for our model is needed/beneficial.
 ```{r}
 #Random Forest
+#Train control options for ensemble models
 trCtrl <- trainControl(method = "repeatedcv", number = 5, repeats = 3)
 
 rfFit <- train(shares ~kw_avg_avg + average_token_length + n_tokens_content + n_tokens_title, data = training_data, method = "rf",trControl=trCtrl, preProcess = c("center", "scale"),tuneGrid = data.frame(mtry = 1:10))
@@ -275,5 +290,30 @@ plot(rfFit)
 
 By plotting the `rfFit` we can see which `mtry` value is the best. This might be different between subjects.
 
+
+### Boosted Tree
+Lastly, a boosted tree was fit using 5-fold, 3 times repeated cross-validation with tuning parameter combinations of `n.trees` = (10, 25, 50, 100, 150, and 200), `interaction.depth` = 1:4, `shrinkage` = 0.1, and `n.minobsinnode` = 10.
+```{r Boosted-Tree, results = 'hide'}
+#Tune Parameters for cross-validation
+tuneParam <-expand.grid(n.trees = c(10, 25, 50, 100, 150, 200),
+                         interaction.depth = 1:4, shrinkage = 0.1,
+                         n.minobsinnode = 10)
+#Cross-validation, tune parameter selection, and training of boosted tree models
+boostTree <-train(shares ~ ., data = training_data, method = "gbm",
+                trControl = trCtrl, preProcess = c("center","scale"),
+                tuneGrid = tuneParam)
+
+#Results from model training
+boostTree$results
+#Best tuning parameters
+boostTree$bestTune
+
+#Uses best tuned training boosted tree model to predict test data
+boostTreePred <-predict(boostTree, newdata = test_data)
+
+#Reports best boosted tree model and corresponding RMSE
+boost <-boostTree$results[1,]
+boost
+```
 
 # Comparison
