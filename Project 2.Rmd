@@ -33,6 +33,7 @@ A variety of numerical and graphic summaries have been used to display our chose
 This report uses the a `set.seed(123)` and the following libraries `knitr`, `rmarkdown`, `caret`, `tidyvers`, `corrplot`, `htmlTable`,  and`tree`.
 
 # Data
+
 ## Reading in data
 We will read in our csv dataset. As instructed we will also split our data by `data_channel_is_*`.
 ```{r data-import}
@@ -77,6 +78,7 @@ test_data <- subset_data[-train_ind,]
 # Summarizations
 
 ## Numeric Summary
+
 ### Six Number Summary
 First, let's perform a simple six number summary of all vvariables from the training data set. This summary includes minimum, 1st quartile, median, mean, 3rd quartile, and maximum values. This provides a senses of scale and range for variable values. Note: Binary response variable`is_weekend` has as values of 0 or 1. 
 ```{r six-num-sum}
@@ -125,9 +127,7 @@ correlation_matrix <- column_to_rownames(corr_mat, var = "variable")
 correlation_matrix 
 ```
 
-
 ## Graphical summaries
-
 We suppose that part of what makes a link shareable is how easy it is for the content to be consumed. Smaller, bite sized information, in a simple writing style might be easier to process and result in more shares.
 We will test this out via proxy's. We will measure shares against average key words(kw_avg_avg), average length of words (average_token_length), average number of words in the content (n_tokens_content), and number of words in the title (n_tokens_title). The idea here is to measure both the quantity of words as well as the complexity of the content. i.e. an article with 500 "easy" words could be shared more than an article with 100 "difficult" words.
 
@@ -205,28 +205,16 @@ Here we graphically depict the correlations among the variables in the training 
 corrplot(cor(training_data), tl.col = "black")
 ```
 
-One thought is that shares might increase based depending on whether the post was created on a weekend or weekday. Perhaps, weekend posts are shared more frequently as, generally, people have more screen time and thus are more apt to share article. This section `shares` has been scaled and density plotted by `is_weekend` as a factor where 0 is a weekday and 1 is a weekend day.
-```{r shares-weekend-plot}
-options(scipen = 999)
-weekend_factor <- subset_data_wo_outliers %>%
-  mutate(weekend = as.factor(is_weekend)) %>% select(weekend, shares)
-g <- ggplot(weekend_factor, aes(x=shares)) +  xlab("Number of Shares") +
-  ylab("Density")
-g + geom_histogram(aes(y = ..density.., fill = weekend)) + 
-  geom_density(adjust = 0.25, alpha = 0.5, aes(fill = weekend), position = "stack") +
-  labs(title = "Density of Shares: Weekday vs. Weekend") + 
-  scale_fill_discrete(name = "Weekday or Weekend?", labels = c("Weekday", "Weekend"))
-options(scipen = 0)
-```
-
+In addition to the previous correlation plot, it is necessary to look at individual scatterplots of the shares vs. predictors. Previously, we plotted the relationship between shares and various word counts, but in this section we will focus exclusively on the emotion predictors such as `global_subjectivity`, `global_sentiment_polarity`,
+`global_rate_negative_words`, `avg_negative_polarity`, `abs_title_subjectivity`, and `abs_title_sentiment_polarity`.
 ```{r sentiment-correlation}
 corNoOut<- function(x) {
   var1 <- get(x, subset_data_wo_outliers)
-  g <- ggplot(subset_data_wo_outliers, aes(x = var1, y = shares)) + 
-    geom_point() +
-    geom_smooth() +
-    geom_smooth(method = lm, col = "Red") 
-  g
+  title <-paste0("Scatterplot of shares vs ", x)
+  xlabel <- x
+  g <- ggplot(subset_data_wo_outliers, aes(x = var1, y = shares)) + geom_point() +
+    geom_smooth() + geom_smooth(method = lm, col = "Red") +
+    labs(title = title, y= "# of shares", x = xlabel)
 }
 sentiment_preds <- list("global_subjectivity", "global_sentiment_polarity",
 "global_rate_negative_words", "avg_negative_polarity",
@@ -236,45 +224,66 @@ lapply(sentiment_preds, corNoOut)
 ```
 
 
+We also believe that shares might increase based on whether the post was created on a weekend. Perhaps, weekend posts are shared more frequently as, generally, people have more screen time and thus are more apt to share article. This section `shares` has been scaled and density plotted by `is_weekend` as a factor where 0 is a weekday and 1 is a weekend day.
+```{r shares-weekend-plot}
+# Removing scientific notation for readability
+options(scipen = 999)
+
+# Coverts is_weekend into a two level factor
+weekend_factor <- subset_data_wo_outliers %>%
+  mutate(weekend = as.factor(is_weekend)) %>% select(weekend, shares)
+
+# Base plot
+g <- ggplot(weekend_factor, aes(x=shares)) +  xlab("Number of Shares") +
+  ylab("Density")
+
+# Filled, stacked histogram with density of shares by weekend level
+g + geom_histogram(aes(y = ..density.., fill = weekend)) + 
+  geom_density(adjust = 0.25, alpha = 0.5, aes(fill = weekend), position = "stack") +
+  labs(title = "Density of Shares: Weekday vs. Weekend") + 
+  scale_fill_discrete(name = "Weekday or Weekend?", labels = c("Weekday", "Weekend"))
+
+# Turning on scientific notation
+options(scipen = 0)
+```
+
 # Modeling
 
 ## Linear Models
 
-Fitting our linear model with our chosen variables. We will also look at the interaction between our chosen variables.
-
-```{r}
+Fitting our linear model with our chosen variables. 
+In this first linear model we will investigate our suposition that readability of the title and content increase shares.
+```{r first-lm-model}
+# First linear model
 lmfit1 <- lm(shares ~kw_avg_avg*average_token_length*n_tokens_content*n_tokens_title, data = training_data)
 summary(lmfit1)
 ```
 
 Using the `data_source_is_lifestyle` as base data source, the following chunk of code was run and to determine potential significant additive and interaction terms by t tests for significance with p-values less than or equal to 0.05. The subsequent model was selected for this report:
-`lm(shares ~ n_tokens_content + num_imgs + num_videos + average_token_length + 
-               kw_avg_avg + global_sentiment_polarity + global_rate_negative_words + kw_avg_avg + 
-                abs_title_sentiment_polarity + global_subjectivity + 
-                n_tokens_content:num_imgs + n_tokens_content:num_videos + 
-                n_tokens_content:average_token_length + n_tokens_content:kw_avg_avg + 
-                n_tokens_content:global_sentiment_polarity + 
-                n_tokens_content:global_rate_negative_words + num_imgs:kw_avg_avg + 
-                num_imgs:abs_title_sentiment_polarity + num_videos:average_token_length + 
-                num_videos:global_subjectivity + num_videos:global_sentiment_polarity + 
-                num_videos:global_rate_negative_words + num_videos:abs_title_sentiment_polarity,
+`lm(shares ~  n_tokens_content*num_imgs + n_tokens_content*num_videos + 
+                n_tokens_content:average_token_length + n_tokens_content*kw_avg_avg + 
+                n_tokens_content*global_sentiment_polarity + 
+                n_tokens_content*global_rate_negative_words + num_imgs*kw_avg_avg + 
+                num_imgs*abs_title_sentiment_polarity + num_videos*average_token_length + 
+                num_videos*global_subjectivity + num_videos*global_sentiment_polarity + 
+                num_videos*global_rate_negative_words + num_videos*abs_title_sentiment_polarity,
               data = training_data)`
-```{r, eval = FALSE}
+```{r full-lm-model-for-model-selection, eval = FALSE}
+# Generates a linear model with all main effects and interactions terms
 lm_full <- lm(shares ~ .^2, data = training_data)
 summary(lm_full)
 ```
 
-```{r}
-lmfit2 <- lm(shares ~ n_tokens_content + num_imgs + num_videos + average_token_length + 
-               kw_avg_avg + global_sentiment_polarity + global_rate_negative_words + kw_avg_avg + 
-                abs_title_sentiment_polarity + global_subjectivity + 
-                n_tokens_content:num_imgs + n_tokens_content:num_videos + 
-                n_tokens_content:average_token_length + n_tokens_content:kw_avg_avg + 
-                n_tokens_content:global_sentiment_polarity + 
-                n_tokens_content:global_rate_negative_words + num_imgs:kw_avg_avg + 
-                num_imgs:abs_title_sentiment_polarity + num_videos:average_token_length + 
-                num_videos:global_subjectivity + num_videos:global_sentiment_polarity + 
-                num_videos:global_rate_negative_words + num_videos:abs_title_sentiment_polarity,
+This is the second linear model we will use as described above it was selected by examining p-values from the summary of the a linear model with all main effects and interaction terms.
+```{r second-linear-model}
+# Generalates second linear model candidate
+lmfit2 <- lm(shares ~  n_tokens_content*num_imgs + n_tokens_content*num_videos + 
+                n_tokens_content:average_token_length + n_tokens_content*kw_avg_avg + 
+                n_tokens_content*global_sentiment_polarity + 
+                n_tokens_content*global_rate_negative_words + num_imgs*kw_avg_avg + 
+                num_imgs*abs_title_sentiment_polarity + num_videos*average_token_length + 
+                num_videos*global_subjectivity + num_videos*global_sentiment_polarity + 
+                num_videos*global_rate_negative_words + num_videos*abs_title_sentiment_polarity,
               data = training_data)
 summary(lmfit2)
 ```
@@ -290,7 +299,7 @@ $$R^2 < .1 : we \space suspect \space that \space we \space cannot \space reject
 
 ### Random Forest
 We can now fit our model above into a tree function. This will give us a better picture of where our variables are most important in our model.
-```{r}
+```{r fitting-tree-model}
 fitTree <- tree(shares ~kw_avg_avg + average_token_length + n_tokens_content + n_tokens_title, data = training_data)
 plot(fitTree)
 text(fitTree)
@@ -299,7 +308,7 @@ text(fitTree)
 We are able to use the tree function to see where our variables are most important and in what order. This could change based on subject.
 
 We can kick off a random forest model in our to see if adding this level of complexity for our model is needed/beneficial.
-```{r}
+```{r random-forest}
 #Random Forest
 #Train control options for ensemble models
 trCtrl <- trainControl(method = "repeatedcv", number = 5, repeats = 3)
@@ -314,7 +323,7 @@ By plotting the `rfFit` we can see which `mtry` value is the best. This might be
 
 ### Boosted Tree
 Lastly, a boosted tree was fit using 5-fold, 3 times repeated cross-validation with tuning parameter combinations of `n.trees` = (10, 25, 50, 100, 150, and 200), `interaction.depth` = 1:4, `shrinkage` = 0.1, and `n.minobsinnode` = 10.
-```{r Boosted-Tree, results = 'hide'}
+```{r boosted-tree, results = 'hide'}
 #Tune Parameters for cross-validation
 tuneParam <-expand.grid(n.trees = c(10, 25, 50, 100, 150, 200),
                          interaction.depth = 1:4, shrinkage = 0.1,
@@ -326,7 +335,7 @@ boostTree <-train(shares ~ ., data = training_data, method = "gbm",
 ```
 
 Here are results of the cross-validation for selecting the best model.
-```{r Boosted-Tree-Results}
+```{r boosted-tree-results}
 #Plot of RMSE by Max Tree Depth
 plot(boostTree)
 #Results from model training
@@ -334,13 +343,13 @@ boostTree$results
 ```
 
 The best tuning paramters are:
-```{r Boosted-Tree-Tune}
+```{r boosted-tree-tune}
 #Best tuning parameters
 boostTree$bestTune
 ```
 
 This section generates the predictions based on the best boosted tree model. 
-```{r Boosted-Tree-Prediction}
+```{r boosted-tree-prediction}
 #Uses best tuned training boosted tree model to predict test data
 boostTreePred <-predict(boostTree, newdata = test_data)
 
@@ -350,3 +359,5 @@ boost
 ```
 
 # Comparison
+
+# Automation
