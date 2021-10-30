@@ -7,7 +7,7 @@ output:
 # params:
 #   category: "lifestyle"
 params:
-  category: category
+  category: "lifestyle"
 ---
 ```{r setup, include=FALSE, message=FALSE}
 set.seed(123)
