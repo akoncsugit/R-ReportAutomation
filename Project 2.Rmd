@@ -7,7 +7,7 @@ output:
 # params:
 #   category: "lifestyle"
 params:
-  category: "lifestyle"
+  category: category
 ---
 ```{r setup, include=FALSE, message=FALSE, cache = TRUE}
 set.seed(123)
@@ -367,7 +367,8 @@ The following code chunk was called in the console in order to generate a report
 ```{r automation-code, eval = FALSE}
 library(rmarkdown)
 # Creates a list of the six data_channel_is_* options
-category <- c("lifestyle", "entertainment", "bus", "socmed", "tech", "world")
+#category <- c("lifestyle", "entertainment", "bus", "socmed", "tech", "world")
+category <- c("entertainment")
 
 # Creates output filenames
 output_file <- paste0(category, ".html")
