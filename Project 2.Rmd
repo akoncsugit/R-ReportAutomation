@@ -313,12 +313,8 @@ We can kick off a random forest model in our to see if adding this level of comp
 #Random Forest
 #Train control options for ensemble models
 trCtrl <- trainControl(method = "repeatedcv", number = 5, repeats = 3)
-cores <- detectCores()
-cluster <- makeCluster(cores - 1)
-registerDoParallel(cluster)
 
 rfFit <- train(shares ~kw_avg_avg + average_token_length + n_tokens_content + n_tokens_title, data = training_data, method = "rf",trControl=trCtrl, preProcess = c("center", "scale"),tuneGrid = data.frame(mtry = 1:4))
-stopCluster(cluster)
 
 plot(rfFit)
 ```
