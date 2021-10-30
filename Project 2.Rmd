@@ -9,7 +9,7 @@ output:
 params:
   category: "lifestyle"
 ---
-```{r setup, include=FALSE, message=FALSE}
+```{r setup, include=FALSE, message=FALSE, cache = TRUE}
 set.seed(123)
 
 #Required Packages
@@ -19,6 +19,7 @@ library(tidyverse)
 library(corrplot)
 library(tree)
 library(parallel)
+library(doParallel)
 ```  
 
 # Introduction
@@ -37,7 +38,7 @@ This report uses the a `set.seed(123)` and the following libraries `knitr`, `rma
 
 ## Reading in data
 We will read in our csv dataset. As instructed we will also split our data by `data_channel_is_*`.
-```{r data-import}
+```{r data-import, cache = TRUE}
 #Reads in csv file `OnlineNewsPopularity/OnlineNewsPopularity.csv` to produce a data frame
 online_new_popularity_data <- read.csv("./OnlineNewsPopularity/OnlineNewsPopularity.csv")
 ```
@@ -45,7 +46,7 @@ online_new_popularity_data <- read.csv("./OnlineNewsPopularity/OnlineNewsPopular
 ## Subsetting the data
 We will subset the data based on the category listed in our YAML header. In this case, using data from ``r paste0("data_channel_is_",params$category)``. We will remove non-predictors such as `url` and `timedelta` and selected our desired predictors** and `shares`.
 **`n_tokens_title`, `n_tokens_content`, `num_imgs`, `num_videos`, `average_token_length`, `kw_avg_avg`, `is_weekend`, `global_subjectivity`, `global_sentiment_polarity`, `global_rate_negative_words`, `avg_negative_polarity`, `abs_title_subjectivity`, `abs_title_sentiment_polarity`
-```{r subsetting-data}
+```{r subsetting-data, cache = TRUE}
 # Subsetting our data based on the category parameter, dropping non-predictors,
 # and subsetting for desired predictors and response variables
 subset_data <- online_new_popularity_data %>%
@@ -57,7 +58,7 @@ subset_data <- online_new_popularity_data %>%
 ```
 
 Next, we will check for potential problematic values such as NA or infinity. These could result in errors with later analysis. Should a problem arise later on, this allows for a diagnostic to rule out potential problematic values.
-```{r diagnoistic-NA-infinite}
+```{r diagnoistic-NA-infinite, cache = TRUE}
 # Checking data for NA  or infinite values
 na_or_infinite <- as.data.frame(apply(subset_data, 2, function(x) any(is.na(x) | is.infinite(x))))
 colnames(na_or_infinite) <- c("NA or Infinite values")
@@ -66,7 +67,7 @@ na_or_infinite %>% kable()
 
 In this chunk, we will split our newly subset data frame into training and test data sets.
 We will use a simple 70/30 split
-```{r data-splitting-train-train}
+```{r data-splitting-train-train, cache = TRUE}
 # Setting up a simple 70/30 split for our already subset data
 sample_size <- floor(0.7 * nrow(subset_data))
 train_ind <- sample(seq_len(nrow(subset_data)), size = sample_size)
@@ -82,7 +83,7 @@ test_data <- subset_data[-train_ind,]
 
 ### Six Number Summary
 First, let's perform a simple six number summary of all vvariables from the training data set. This summary includes minimum, 1st quartile, median, mean, 3rd quartile, and maximum values. This provides a senses of scale and range for variable values. Note: Binary response variable`is_weekend` has as values of 0 or 1. 
-```{r six-num-sum}
+```{r six-num-sum, cache = TRUE}
 #Generates a six number summary from training_data
 summary <- summary(training_data)
 summary
@@ -90,7 +91,7 @@ summary
 
 ### Standard Deviation
 The previous section does not generate standard deviation for the variable values. Standard deviation is necessary for determining the variance of the response and predictors. It is a good diagnostic to spot potential issues that violate assumptions necessary for models and analysis. Here we will produce standard deviations for each variable from `training_data.` Note: Binary response variable`is_weekend` has as values of 0 or 1. 
-```{r sd-calculations}
+```{r sd-calculations, cache = TRUE}
 # Removes scientific notation for readability
 options(scipen = 999)
 
@@ -104,7 +105,7 @@ options(scipen = 0)
 
 ### IQR
 Although the 1st and 3rd quartiles are identified in the six number summary, it is helpful quantify the range between these two values or IQR. IQR is also needed for subsequent plotting. Note: Binary response variable`is_weekend` has as values of 0 or 1. 
-```{r IQR}
+```{r IQR, cache = TRUE}
 # Uses lapply to generate IQR for all variables in training_data
 IQR<- as_tibble(lapply(training_data[, 1:14], IQR))
 IQR
@@ -112,7 +113,7 @@ IQR
 
 ### Correlations
 Prior to preforming any model fitting or statistical analysis, it is essential to understand the potential correlation among predictors and between the response and predictors. Correlation helps identify potential collinearity and, thus, allows for better candidate model selection. It is worth noting any absolute correlation values > 0.5. However, this threshold has been left to discretion of the individual.
-```{r correlations}
+```{r correlations, cache = TRUE}
 # Creating a data frame of a single column of variable names 
 variables <- as_tibble(attributes(training_data)$names) %>%
   rename(variable = "value")
@@ -134,7 +135,7 @@ We will test this out via proxy's. We will measure shares against average key wo
 
 ### Improving graphical summaries - Cutlier check 
 To produce graphs and plots that give an accurate sense of the data, we will search for potential. If we have any outliers we will remove them first to get an idea of what the bulk of shares come from. We will follow what the boxplot tells us when choosing what to remove.
-```{r boxplot-outliers}
+```{r boxplot-outliers, cache = TRUE}
 # Boxplot from training_data
 boxplot(training_data$shares,horizontal = TRUE, range = 2, main = "Boxplot of shares with outliers")
 
@@ -148,7 +149,7 @@ subset_data_wo_outliers <- training_data %>% filter(shares <= upper_limit & shar
 ```
 
 After we remove any potential outliers to our data our we can compare shares our key metrics.
-```{r shares-vs-keywords-average, warning=FALSE}
+```{r shares-vs-keywords-average, warning=FALSE, cache = TRUE}
 correlation1 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$kw_avg_avg)
 
 plot1 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = kw_avg_avg)) + 
@@ -161,7 +162,7 @@ plot1
 ```
 
 We can measure the trend of shares as a function of Average number of key words. If we see a possitive trend we can say that the more key words in the articles the more likely it is to be shared, the opposite can also be said. We measure the correlation to get a more precise gauge in case the graph is not clear enough.
-```{r shares-vs-average-length-of-words-in-content, warning=FALSE}
+```{r shares-vs-average-length-of-words-in-content, warning=FALSE, cache = TRUE}
 correlation2 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$average_token_length)
 
 plot2 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = average_token_length)) +
@@ -174,7 +175,7 @@ plot2
 
 With a density plot as a function of average length of words in content we see where most of our shares come from. We can utilize this to help explain our model down below.
 
-```{r, density-plot, warning=FALSE}
+```{r, density-plot, warning=FALSE, cache = TRUE}
 correlation3 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$n_tokens_content)
 
 plot3 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = n_tokens_content)) +
@@ -187,7 +188,7 @@ plot3
 
 Using a rug graph we can measure the relationship between number of words in content and the number of shares. The intersection between where both rugs are highly concentrated is where how we can measure correlation. If both rugs are concentrated near zero than we see that the less words the more shareable the articles are or vice versa.
 
-```{r rug-graph, warning=FALSE}
+```{r rug-graph, warning=FALSE, cache = TRUE}
 correlation4 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$n_tokens_title)
 
 plot4 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = n_tokens_title)) +
@@ -201,14 +202,14 @@ We see how the `# of words in title` as distributed with respect to number of sh
 
 
 Here we graphically depict the correlations among the variables in the training data.
-```{r correlation-plot}
+```{r correlation-plot, cache = TRUE}
 # Note need to probably name graphs still etc...work in progress
 corrplot(cor(training_data), tl.col = "black")
 ```
 
 In addition to the previous correlation plot, it is necessary to look at individual scatterplots of the shares vs. predictors. Previously, we plotted the relationship between shares and various word counts, but in this section we will focus exclusively on the emotion predictors such as `global_subjectivity`, `global_sentiment_polarity`,
 `global_rate_negative_words`, `avg_negative_polarity`, `abs_title_subjectivity`, and `abs_title_sentiment_polarity`.
-```{r sentiment-correlation}
+```{r sentiment-correlation, cache = TRUE}
 corNoOut<- function(x) {
   var1 <- get(x, subset_data_wo_outliers)
   title <-paste0("Scatterplot of shares vs ", x)
@@ -221,12 +222,11 @@ sentiment_preds <- list("global_subjectivity", "global_sentiment_polarity",
 "global_rate_negative_words", "avg_negative_polarity",
 "abs_title_subjectivity", "abs_title_sentiment_polarity")
 lapply(sentiment_preds, corNoOut)
-
 ```
 
 
 We also believe that shares might increase based on whether the post was created on a weekend. Perhaps, weekend posts are shared more frequently as, generally, people have more screen time and thus are more apt to share article. This section `shares` has been scaled and density plotted by `is_weekend` as a factor where 0 is a weekday and 1 is a weekend day.
-```{r shares-weekend-plot}
+```{r shares-weekend-plot, cache = TRUE}
 # Removing scientific notation for readability
 options(scipen = 999)
 
@@ -254,7 +254,7 @@ options(scipen = 0)
 
 Fitting our linear model with our chosen variables. 
 In this first linear model we will investigate our suposition that readability of the title and content increase shares.
-```{r first-lm-model}
+```{r first-lm-model, cache = TRUE}
 # First linear model
 lmfit1 <- lm(shares ~kw_avg_avg*average_token_length*n_tokens_content*n_tokens_title, data = training_data)
 summary(lmfit1)
@@ -269,7 +269,7 @@ Using the `data_source_is_lifestyle` as base data source, the following chunk of
                 num_videos*global_subjectivity + num_videos*global_sentiment_polarity + 
                 num_videos*global_rate_negative_words + num_videos*abs_title_sentiment_polarity,
               data = training_data)`
-```{r full-lm-model-for-model-selection, eval = FALSE}
+```{r full-lm-model-for-model-selection, eval = FALSE, cache = TRUE}
 # Generates a linear model with all main effects and interactions terms
 lm_full <- lm(shares ~ .^2, data = training_data)
 summary(lm_full)
@@ -300,7 +300,7 @@ $$R^2 < .1 : we \space suspect \space that \space we \space cannot \space reject
 
 ### Random Forest
 We can now fit our model above into a tree function. This will give us a better picture of where our variables are most important in our model.
-```{r fitting-tree-model}
+```{r fitting-tree-model, cache = TRUE}
 fitTree <- tree(shares ~kw_avg_avg + average_token_length + n_tokens_content + n_tokens_title, data = training_data)
 plot(fitTree)
 text(fitTree)
@@ -309,12 +309,16 @@ text(fitTree)
 We are able to use the tree function to see where our variables are most important and in what order. This could change based on subject.
 
 We can kick off a random forest model in our to see if adding this level of complexity for our model is needed/beneficial.
-```{r random-forest}
+```{r random-forest, cache = TRUE}
 #Random Forest
 #Train control options for ensemble models
 trCtrl <- trainControl(method = "repeatedcv", number = 5, repeats = 3)
+cores <- detectCores()
+cluster <- makeCluster(cores - 1)
+registerDoParallel(cluster)
 
 rfFit <- train(shares ~kw_avg_avg + average_token_length + n_tokens_content + n_tokens_title, data = training_data, method = "rf",trControl=trCtrl, preProcess = c("center", "scale"),tuneGrid = data.frame(mtry = 1:4))
+stopCluster(cluster)
 
 plot(rfFit)
 ```
@@ -324,7 +328,7 @@ By plotting the `rfFit` we can see which `mtry` value is the best. This might be
 
 ### Boosted Tree
 Lastly, a boosted tree was fit using 5-fold, 3 times repeated cross-validation with tuning parameter combinations of `n.trees` = (10, 25, 50, 100, 150, and 200), `interaction.depth` = 1:4, `shrinkage` = 0.1, and `n.minobsinnode` = 10.
-```{r boosted-tree, results = 'hide'}
+```{r boosted-tree, results = 'hide', cache = TRUE}
 #Tune Parameters for cross-validation
 tuneParam <-expand.grid(n.trees = c(10, 25, 50, 100, 150, 200),
                          interaction.depth = 1:4, shrinkage = 0.1,
@@ -336,7 +340,7 @@ boostTree <-train(shares ~ ., data = training_data, method = "gbm",
 ```
 
 Here are results of the cross-validation for selecting the best model.
-```{r boosted-tree-results}
+```{r boosted-tree-results, cache = TRUE}
 #Plot of RMSE by Max Tree Depth
 plot(boostTree)
 #Results from model training
@@ -344,13 +348,13 @@ boostTree$results
 ```
 
 The best tuning paramters are:
-```{r boosted-tree-tune}
+```{r boosted-tree-tune, cache = TRUE}
 #Best tuning parameters
 boostTree$bestTune
 ```
 
 This section generates the predictions based on the best boosted tree model. 
-```{r boosted-tree-prediction}
+```{r boosted-tree-prediction, cache = TRUE}
 #Uses best tuned training boosted tree model to predict test data
 boostTreePred <-predict(boostTree, newdata = test_data)
 
