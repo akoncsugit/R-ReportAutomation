@@ -6,8 +6,6 @@ output:
     df_print: paged 
 params:
   category: "lifestyle"
-#params:
-#  category: category
 ---
 
 ```{r setup, include=FALSE, message=FALSE, cache = TRUE}
