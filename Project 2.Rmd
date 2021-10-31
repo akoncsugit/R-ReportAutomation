@@ -4,11 +4,12 @@ author: "Sergio Mora & Ashley Ko"
 output:
   html_document:  
     df_print: paged 
-# params:
-#   category: "lifestyle"
 params:
-  category: category
+  category: "lifestyle"
+#params:
+#  category: category
 ---
+
 ```{r setup, include=FALSE, message=FALSE, cache = TRUE}
 set.seed(123)
 
@@ -360,6 +361,24 @@ boost
 ```
 
 # Comparison
+
+```{r, warning=FALSE}
+lmfit_1 = c(MAE(test_data$shares,predict(lmfit1)),RMSE(test_data$shares,predict(lmfit1)))
+
+lmfit_2 = c(MAE(test_data$shares,predict(lmfit2)),RMSE(test_data$shares,predict(lmfit2)))
+
+rffit_c = c(MAE(test_data$shares,predict(rfFit)),RMSE(test_data$shares,predict(rfFit)))
+
+boostTree_c = c(MAE(test_data$shares,predict(boostTree)),RMSE(test_data$shares,predict(boostTree)))
+
+MAE_RMSE_SUMM <- rbind.data.frame("Linear Model 1" = lmfit_1, "Linear Model 2" = lmfit_2,"Random Forrest" = rffit_c, "Boosted Tree" = boostTree_c)
+
+colnames(MAE_RMSE_SUMM) <- c("MAE","RMSE")
+rownames(MAE_RMSE_SUMM) <- c("Linear Model 1", "Linear Model 2", "Random Forrest", "Boosted Tree")
+kable(MAE_RMSE_SUMM, caption = "Comparing models via MAE and RMSE")
+```  
+
+Measuring success with MAE and RMSE. This helps measure the models success while also accounting for the complexity of the model. We can use the MAE **and** RMSE to see if any issues in our data come form a single point (or a small subset of points).
 
 # Automation
 
