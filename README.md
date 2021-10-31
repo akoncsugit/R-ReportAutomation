@@ -27,7 +27,7 @@ params = lapply(category, FUN = function(x){list(category = x)})
 reports <- tibble(output_file, params)
 
 # Applies the render function to each pair of output file name and category
-apply(reports, MARGIN = 1, FUN = function(x){ render(input = "Project 2.Rmd",
+apply(reports, MARGIN = 1, FUN = function(x){ render(input = "Project2.Rmd",
                                                      output_file = x[[1]],
                                                      params = x[[2]])})
 ```
