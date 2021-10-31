@@ -386,8 +386,7 @@ The following code chunk was called in the console in order to generate a report
 ```{r automation-code, eval = FALSE}
 library(rmarkdown)
 # Creates a list of the six data_channel_is_* options
-#category <- c("lifestyle", "entertainment", "bus", "socmed", "tech", "world")
-category <- c("lifestyle","entertainment","bus")
+category <- c("lifestyle", "entertainment", "bus", "socmed", "tech", "world")
 
 # Creates output filenames
 output_file <- paste0(category, ".html")
