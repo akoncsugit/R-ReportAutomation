@@ -3,7 +3,7 @@
 
 Below are the reports for each category. Also is the code that creates said reports automatically based on the `params` parameter. Each report is simmilar to the other reports but can vary depending on the data.
 
-  - [lifestyle](lifestyle.md)
+  - [lifestyle](lifestyle.html)
   - [entertainment](entertainment.html)
   - [bus](bus.html)
   - [socmed](socmed.html)
