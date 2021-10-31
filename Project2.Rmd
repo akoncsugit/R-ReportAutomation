@@ -1,11 +1,9 @@
 ---
 title: "ST558 Project 2"
 author: "Sergio Mora & Ashley Ko"
-output:
-  html_document:  
-    df_print: paged 
+output: github_document
 params:
-  category: "lifestyle"
+  category: category
 ---
 
 ```{r setup, include=FALSE, message=FALSE, cache = TRUE}
@@ -399,7 +397,7 @@ library(rmarkdown)
 category <- c("lifestyle", "entertainment", "bus", "socmed", "tech", "world")
 
 # Creates output filenames
-output_file <- paste0(category, ".html")
+output_file <- paste0(category, ".md")
 # Creates a list for each data channel with just the category parameter
 params = lapply(category, FUN = function(x){list(category = x)})
 
