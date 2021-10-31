@@ -58,8 +58,10 @@ We will read in our csv dataset. We will also split our data by
 `data_channel_is_*`.
 
 ``` r
-#Reads in csv file `OnlineNewsPopularity/OnlineNewsPopularity.csv` to produce a data frame
-online_new_popularity_data <- read.csv("./OnlineNewsPopularity/OnlineNewsPopularity.csv")
+# Reads in csv file `OnlineNewsPopularity/OnlineNewsPopularity.csv` 
+# to produce a data frame
+online_new_popularity_data <- 
+  read.csv("./OnlineNewsPopularity/OnlineNewsPopularity.csv")
 ```
 
 ## Subsetting the data
@@ -82,8 +84,8 @@ subset_data <- online_new_popularity_data %>%
   filter(!!as.name(paste0("data_channel_is_",params$category)) == 1) %>%
   select(n_tokens_title, n_tokens_content, num_imgs:average_token_length,
          kw_avg_avg, is_weekend, global_subjectivity, global_sentiment_polarity, 
-         global_rate_negative_words, avg_negative_polarity, abs_title_subjectivity,
-         abs_title_sentiment_polarity, shares)
+         global_rate_negative_words, avg_negative_polarity,
+         abs_title_subjectivity, abs_title_sentiment_polarity, shares)
 ```
 
 Next, we will check for potential problematic values such as NA or
@@ -93,7 +95,8 @@ potential problematic values.
 
 ``` r
 # Checking data for NA  or infinite values
-na_or_infinite <- as.data.frame(apply(subset_data, 2, function(x) any(is.na(x) | is.infinite(x))))
+na_or_infinite <- as.data.frame(apply(subset_data,
+                                2, function(x) any(is.na(x) | is.infinite(x))))
 colnames(na_or_infinite) <- c("NA or Infinite values")
 na_or_infinite %>% kable()
 ```
@@ -152,48 +155,34 @@ summary <- summary(training_data)
 summary
 ```
 
-    ##  n_tokens_title  n_tokens_content    num_imgs      
-    ##  Min.   : 3.00   Min.   :   0.0   Min.   :  0.000  
-    ##  1st Qu.: 8.00   1st Qu.: 316.0   1st Qu.:  1.000  
-    ##  Median :10.00   Median : 509.0   Median :  1.000  
-    ##  Mean   : 9.73   Mean   : 631.9   Mean   :  4.941  
-    ##  3rd Qu.:11.00   3rd Qu.: 807.0   3rd Qu.:  8.000  
-    ##  Max.   :17.00   Max.   :8474.0   Max.   :111.000  
-    ##    num_videos     average_token_length   kw_avg_avg   
-    ##  Min.   : 0.000   Min.   :0.000        Min.   :    0  
-    ##  1st Qu.: 0.000   1st Qu.:4.440        1st Qu.: 2627  
-    ##  Median : 0.000   Median :4.621        Median : 3231  
-    ##  Mean   : 0.501   Mean   :4.579        Mean   : 3402  
-    ##  3rd Qu.: 0.000   3rd Qu.:4.795        3rd Qu.: 3923  
-    ##  Max.   :50.000   Max.   :5.947        Max.   :20378  
-    ##    is_weekend     global_subjectivity global_sentiment_polarity
-    ##  Min.   :0.0000   Min.   :0.0000      Min.   :-0.3727          
-    ##  1st Qu.:0.0000   1st Qu.:0.4236      1st Qu.: 0.1001          
-    ##  Median :0.0000   Median :0.4764      Median : 0.1491          
-    ##  Mean   :0.1872   Mean   :0.4720      Mean   : 0.1512          
-    ##  3rd Qu.:0.0000   3rd Qu.:0.5253      3rd Qu.: 0.2024          
-    ##  Max.   :1.0000   Max.   :0.8667      Max.   : 0.5800          
-    ##  global_rate_negative_words avg_negative_polarity
-    ##  Min.   :0.00000            Min.   :-1.0000      
-    ##  1st Qu.:0.01046            1st Qu.:-0.3213      
-    ##  Median :0.01552            Median :-0.2585      
-    ##  Mean   :0.01641            Mean   :-0.2660      
-    ##  3rd Qu.:0.02115            3rd Qu.:-0.2024      
-    ##  Max.   :0.05785            Max.   : 0.0000      
-    ##  abs_title_subjectivity abs_title_sentiment_polarity
-    ##  Min.   :0.0000         Min.   :0.0000              
-    ##  1st Qu.:0.2000         1st Qu.:0.0000              
-    ##  Median :0.5000         Median :0.0000              
-    ##  Mean   :0.3531         Mean   :0.1733              
-    ##  3rd Qu.:0.5000         3rd Qu.:0.3000              
-    ##  Max.   :0.5000         Max.   :1.0000              
-    ##      shares      
-    ##  Min.   :    28  
-    ##  1st Qu.:  1100  
-    ##  Median :  1700  
-    ##  Mean   :  3870  
-    ##  3rd Qu.:  3300  
-    ##  Max.   :208300
+    ##  n_tokens_title  n_tokens_content    num_imgs         num_videos    
+    ##  Min.   : 3.00   Min.   :   0.0   Min.   :  0.000   Min.   : 0.000  
+    ##  1st Qu.: 8.00   1st Qu.: 316.0   1st Qu.:  1.000   1st Qu.: 0.000  
+    ##  Median :10.00   Median : 509.0   Median :  1.000   Median : 0.000  
+    ##  Mean   : 9.73   Mean   : 631.9   Mean   :  4.941   Mean   : 0.501  
+    ##  3rd Qu.:11.00   3rd Qu.: 807.0   3rd Qu.:  8.000   3rd Qu.: 0.000  
+    ##  Max.   :17.00   Max.   :8474.0   Max.   :111.000   Max.   :50.000  
+    ##  average_token_length   kw_avg_avg      is_weekend     global_subjectivity
+    ##  Min.   :0.000        Min.   :    0   Min.   :0.0000   Min.   :0.0000     
+    ##  1st Qu.:4.440        1st Qu.: 2627   1st Qu.:0.0000   1st Qu.:0.4236     
+    ##  Median :4.621        Median : 3231   Median :0.0000   Median :0.4764     
+    ##  Mean   :4.579        Mean   : 3402   Mean   :0.1872   Mean   :0.4720     
+    ##  3rd Qu.:4.795        3rd Qu.: 3923   3rd Qu.:0.0000   3rd Qu.:0.5253     
+    ##  Max.   :5.947        Max.   :20378   Max.   :1.0000   Max.   :0.8667     
+    ##  global_sentiment_polarity global_rate_negative_words avg_negative_polarity
+    ##  Min.   :-0.3727           Min.   :0.00000            Min.   :-1.0000      
+    ##  1st Qu.: 0.1001           1st Qu.:0.01046            1st Qu.:-0.3213      
+    ##  Median : 0.1491           Median :0.01552            Median :-0.2585      
+    ##  Mean   : 0.1512           Mean   :0.01641            Mean   :-0.2660      
+    ##  3rd Qu.: 0.2024           3rd Qu.:0.02115            3rd Qu.:-0.2024      
+    ##  Max.   : 0.5800           Max.   :0.05785            Max.   : 0.0000      
+    ##  abs_title_subjectivity abs_title_sentiment_polarity     shares      
+    ##  Min.   :0.0000         Min.   :0.0000               Min.   :    28  
+    ##  1st Qu.:0.2000         1st Qu.:0.0000               1st Qu.:  1100  
+    ##  Median :0.5000         Median :0.0000               Median :  1700  
+    ##  Mean   :0.3531         Mean   :0.1733               Mean   :  3870  
+    ##  3rd Qu.:0.5000         3rd Qu.:0.3000               3rd Qu.:  3300  
+    ##  Max.   :0.5000         Max.   :1.0000               Max.   :208300
 
 ### Standard Deviation
 
@@ -278,13 +267,15 @@ follow what the boxplot tells us when choosing what to remove.
 
 ``` r
 # Boxplot from training_data
-boxplot(training_data$shares,horizontal = TRUE, range = 2, main = "Boxplot of shares with outliers")
+boxplot(training_data$shares,horizontal = TRUE, range = 2,
+        main = "Boxplot of shares with outliers")
 ```
 
 ![](lifestyle_files/figure-gfm/boxplot-outliers-1.png)<!-- -->
 
 ``` r
-boxplot(training_data$shares,horizontal = TRUE, range = 2, outline = FALSE,main = "Boxplot of shares without outliers")
+boxplot(training_data$shares,horizontal = TRUE, range = 2, outline = FALSE,
+        main = "Boxplot of shares without outliers")
 ```
 
 ![](lifestyle_files/figure-gfm/boxplot-outliers-2.png)<!-- -->
@@ -294,20 +285,24 @@ boxplot(training_data$shares,horizontal = TRUE, range = 2, outline = FALSE,main 
 IQR <- quantile(training_data$shares)[4] - quantile(subset_data$shares)[2]
 upper_limit <- quantile(training_data$shares)[4] + (1.5 * IQR)
 lower_limit <- quantile(training_data$shares)[2] - (1.5 * IQR)
-subset_data_wo_outliers <- training_data %>% filter(shares <= upper_limit & shares >= lower_limit)
+subset_data_wo_outliers <- training_data %>%
+  filter(shares <= upper_limit & shares >= lower_limit)
 ```
 
 After we remove any potential outliers to our data our we can compare
 shares our key metrics.
 
 ``` r
-correlation1 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$kw_avg_avg)
+correlation1 <- cor(subset_data_wo_outliers$shares,
+                    subset_data_wo_outliers$kw_avg_avg)
 
 plot1 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = kw_avg_avg)) + 
   geom_point() +
   geom_smooth() +
-  labs(title = "Number of shares vs. Average number of key words", y= "# of shares", x = "Average # of key words") +
-  geom_text(color = "red",x=15000,y=5000,label = paste0("Correlation = ",round(correlation1,3)))
+  labs(title = "Number of shares vs. Average number of key words",
+       y= "# of shares", x = "Average # of key words") +
+  geom_text(color = "red",x=15000,y=5000,
+            label = paste0("Correlation = ",round(correlation1,3)))
 
 plot1
 ```
@@ -317,18 +312,22 @@ plot1
 ![](lifestyle_files/figure-gfm/shares-vs-keywords-average-1.png)<!-- -->
 
 We can measure the trend of shares as a function of Average number of
-key words. If we see a possitive trend we can say that the more key
-words in the articles the more likely it is to be shared, the opposite
-can also be said. We measure the correlation to get a more precise gauge
-in case the graph is not clear enough.
+key words. If we see a positive trend we can say that the more key words
+in the articles the more likely it is to be shared, the opposite can
+also be said. We measure the correlation to get a more precise gauge in
+case the graph is not clear enough.
 
 ``` r
-correlation2 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$average_token_length)
+correlation2 <- cor(subset_data_wo_outliers$shares,
+                    subset_data_wo_outliers$average_token_length)
 
-plot2 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = average_token_length)) +
-geom_density_2d() + 
-  labs(title = "number of shares vs. Average length of words in content", y= "# of shares", x = "Average length of words in content") +
-  geom_text(color = "red",x=5,y=3500,label = paste0("Correlation = ",round(correlation2,3)))
+plot2 <- ggplot(subset_data_wo_outliers, 
+                aes(y= shares,x = average_token_length)) +
+  geom_density_2d() + 
+  labs(title = "number of shares vs. Average length of words in content",
+       y= "# of shares", x = "Average length of words in content") +
+  geom_text(color = "red",x=5,y=3500,label = paste0("Correlation = ",
+                                                    round(correlation2,3)))
 
 plot2
 ```
@@ -340,12 +339,15 @@ we see where most of our shares come from. We can utilize this to help
 explain our model down below.
 
 ``` r
-correlation3 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$n_tokens_content)
+correlation3 <- cor(subset_data_wo_outliers$shares,
+                    subset_data_wo_outliers$n_tokens_content)
 
 plot3 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = n_tokens_content)) +
 geom_rug() +
-  labs(title = "number of shares vs. number of words in content", y= "# of shares", x = "# of words in content") +
-  geom_text(color = "red",x=4000,y=4000,label = paste0("Correlation = ",round(correlation3,3)))
+  labs(title = "number of shares vs. number of words in content",
+       y= "# of shares", x = "# of words in content") +
+  geom_text(color = "red",x=4000,
+            y=4000,label = paste0("Correlation = ",round(correlation3,3)))
 
 plot3
 ```
@@ -359,12 +361,15 @@ correlation. If both rugs are concentrated near zero than we see that
 the less words the more shareable the articles are or vice versa.
 
 ``` r
-correlation4 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$n_tokens_title)
+correlation4 <- cor(subset_data_wo_outliers$shares,
+                    subset_data_wo_outliers$n_tokens_title)
 
 plot4 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = n_tokens_title)) +
 geom_col() +
-  labs(title = "number of shares vs. number of words in title", y= "# of shares", x = "# of words in title") +
-  geom_text(color = "red",x=15,y=600000,label = paste0("Correlation = ",round(correlation4,3)))
+  labs(title = "number of shares vs. number of words in title",
+       y= "# of shares", x = "# of words in title") +
+  geom_text(color = "red",x=15,y=600000,label = paste0("Correlation = ",
+                                                       round(correlation4,3)))
 
 plot4
 ```
@@ -396,13 +401,15 @@ corNoOut<- function(x) {
   var1 <- get(x, subset_data_wo_outliers)
   title <-paste0("Scatterplot of shares vs ", x)
   xlabel <- x
-  g <- ggplot(subset_data_wo_outliers, aes(x = var1, y = shares)) + geom_point() +
+  g <- ggplot(subset_data_wo_outliers, aes(x = var1, y = shares)) +
+    geom_point() +
     geom_smooth() + geom_smooth(method = lm, col = "Red") +
     labs(title = title, y= "# of shares", x = xlabel)
 }
 sentiment_preds <- list("global_subjectivity", "global_sentiment_polarity",
-"global_rate_negative_words", "avg_negative_polarity",
-"abs_title_subjectivity", "abs_title_sentiment_polarity")
+                        "global_rate_negative_words", "avg_negative_polarity",
+                        "abs_title_subjectivity",
+                        "abs_title_sentiment_polarity")
 lapply(sentiment_preds, corNoOut)
 ```
 
@@ -469,18 +476,19 @@ weekend_factor <- subset_data_wo_outliers %>%
   mutate(weekend = as.factor(is_weekend)) %>% select(weekend, shares)
 
 # Base plot
-g <- ggplot(weekend_factor, aes(x=shares)) +  xlab("Number of Shares") +
+g <- ggplot(weekend_factor, aes(x=shares)) +xlab("Number of Shares") +
   ylab("Density")
 
 # Filled, stacked histogram with density of shares by weekend level
 g + geom_histogram(aes(y = ..density.., fill = weekend)) + 
-  geom_density(adjust = 0.25, alpha = 0.5, aes(fill = weekend), position = "stack") +
+  geom_density(adjust = 0.25, alpha = 0.5, aes(fill = weekend),
+               position = "stack") +
   labs(title = "Density of Shares: Weekday vs. Weekend") + 
-  scale_fill_discrete(name = "Weekday or Weekend?", labels = c("Weekday", "Weekend"))
+  scale_fill_discrete(name = "Weekday or Weekend?",
+                      labels = c("Weekday", "Weekend"))
 ```
 
-    ## `stat_bin()` using `bins = 30`. Pick better value with
-    ## `binwidth`.
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
 ![](lifestyle_files/figure-gfm/shares-weekend-plot-1.png)<!-- -->
 
@@ -512,7 +520,9 @@ and content increase shares.
 
 ``` r
 # First linear model
-lmfit1 <- lm(shares ~kw_avg_avg*average_token_length*n_tokens_content*n_tokens_title, data = training_data)
+lmfit1 <- 
+  lm(shares ~kw_avg_avg*average_token_length*n_tokens_content*n_tokens_title,
+     data = training_data)
 summary(lmfit1)
 ```
 
@@ -526,74 +536,40 @@ summary(lmfit1)
     ## -12473  -2654  -1698   -282 202954 
     ## 
     ## Coefficients:
-    ##                                                                   Estimate
-    ## (Intercept)                                                     -6.425e+03
-    ## kw_avg_avg                                                       2.692e+00
-    ## average_token_length                                             1.336e+03
-    ## n_tokens_content                                                -3.775e+01
-    ## n_tokens_title                                                   1.113e+02
-    ## kw_avg_avg:average_token_length                                 -4.243e-01
-    ## kw_avg_avg:n_tokens_content                                      3.328e-03
-    ## average_token_length:n_tokens_content                            8.218e+00
-    ## kw_avg_avg:n_tokens_title                                        2.661e-02
-    ## average_token_length:n_tokens_title                             -1.542e+01
-    ## n_tokens_content:n_tokens_title                                  3.157e+00
-    ## kw_avg_avg:average_token_length:n_tokens_content                -6.139e-04
-    ## kw_avg_avg:average_token_length:n_tokens_title                  -7.446e-03
-    ## kw_avg_avg:n_tokens_content:n_tokens_title                      -5.289e-04
-    ## average_token_length:n_tokens_content:n_tokens_title            -6.262e-01
-    ## kw_avg_avg:average_token_length:n_tokens_content:n_tokens_title  1.011e-04
-    ##                                                                 Std. Error
-    ## (Intercept)                                                      4.385e+04
-    ## kw_avg_avg                                                       1.048e+01
-    ## average_token_length                                             9.222e+03
-    ## n_tokens_content                                                 1.172e+02
-    ## n_tokens_title                                                   4.443e+03
-    ## kw_avg_avg:average_token_length                                  2.194e+00
-    ## kw_avg_avg:n_tokens_content                                      3.169e-02
-    ## average_token_length:n_tokens_content                            2.591e+01
-    ## kw_avg_avg:n_tokens_title                                        1.065e+00
-    ## average_token_length:n_tokens_title                              9.317e+02
-    ## n_tokens_content:n_tokens_title                                  1.171e+01
-    ## kw_avg_avg:average_token_length:n_tokens_content                 7.044e-03
-    ## kw_avg_avg:average_token_length:n_tokens_title                   2.217e-01
-    ## kw_avg_avg:n_tokens_content:n_tokens_title                       3.133e-03
-    ## average_token_length:n_tokens_content:n_tokens_title             2.582e+00
-    ## kw_avg_avg:average_token_length:n_tokens_content:n_tokens_title  6.934e-04
-    ##                                                                 t value
-    ## (Intercept)                                                      -0.147
-    ## kw_avg_avg                                                        0.257
-    ## average_token_length                                              0.145
-    ## n_tokens_content                                                 -0.322
-    ## n_tokens_title                                                    0.025
-    ## kw_avg_avg:average_token_length                                  -0.193
-    ## kw_avg_avg:n_tokens_content                                       0.105
-    ## average_token_length:n_tokens_content                             0.317
-    ## kw_avg_avg:n_tokens_title                                         0.025
-    ## average_token_length:n_tokens_title                              -0.017
-    ## n_tokens_content:n_tokens_title                                   0.270
-    ## kw_avg_avg:average_token_length:n_tokens_content                 -0.087
-    ## kw_avg_avg:average_token_length:n_tokens_title                   -0.034
-    ## kw_avg_avg:n_tokens_content:n_tokens_title                       -0.169
-    ## average_token_length:n_tokens_content:n_tokens_title             -0.243
-    ## kw_avg_avg:average_token_length:n_tokens_content:n_tokens_title   0.146
-    ##                                                                 Pr(>|t|)
-    ## (Intercept)                                                        0.884
-    ## kw_avg_avg                                                         0.797
-    ## average_token_length                                               0.885
-    ## n_tokens_content                                                   0.747
-    ## n_tokens_title                                                     0.980
-    ## kw_avg_avg:average_token_length                                    0.847
-    ## kw_avg_avg:n_tokens_content                                        0.916
-    ## average_token_length:n_tokens_content                              0.751
-    ## kw_avg_avg:n_tokens_title                                          0.980
-    ## average_token_length:n_tokens_title                                0.987
-    ## n_tokens_content:n_tokens_title                                    0.788
-    ## kw_avg_avg:average_token_length:n_tokens_content                   0.931
-    ## kw_avg_avg:average_token_length:n_tokens_title                     0.973
-    ## kw_avg_avg:n_tokens_content:n_tokens_title                         0.866
-    ## average_token_length:n_tokens_content:n_tokens_title               0.808
-    ## kw_avg_avg:average_token_length:n_tokens_content:n_tokens_title    0.884
+    ##                                                                   Estimate Std. Error
+    ## (Intercept)                                                     -6.425e+03  4.385e+04
+    ## kw_avg_avg                                                       2.692e+00  1.048e+01
+    ## average_token_length                                             1.336e+03  9.222e+03
+    ## n_tokens_content                                                -3.775e+01  1.172e+02
+    ## n_tokens_title                                                   1.113e+02  4.443e+03
+    ## kw_avg_avg:average_token_length                                 -4.243e-01  2.194e+00
+    ## kw_avg_avg:n_tokens_content                                      3.328e-03  3.169e-02
+    ## average_token_length:n_tokens_content                            8.218e+00  2.591e+01
+    ## kw_avg_avg:n_tokens_title                                        2.661e-02  1.065e+00
+    ## average_token_length:n_tokens_title                             -1.542e+01  9.317e+02
+    ## n_tokens_content:n_tokens_title                                  3.157e+00  1.171e+01
+    ## kw_avg_avg:average_token_length:n_tokens_content                -6.139e-04  7.044e-03
+    ## kw_avg_avg:average_token_length:n_tokens_title                  -7.446e-03  2.217e-01
+    ## kw_avg_avg:n_tokens_content:n_tokens_title                      -5.289e-04  3.133e-03
+    ## average_token_length:n_tokens_content:n_tokens_title            -6.262e-01  2.582e+00
+    ## kw_avg_avg:average_token_length:n_tokens_content:n_tokens_title  1.011e-04  6.934e-04
+    ##                                                                 t value Pr(>|t|)
+    ## (Intercept)                                                      -0.147    0.884
+    ## kw_avg_avg                                                        0.257    0.797
+    ## average_token_length                                              0.145    0.885
+    ## n_tokens_content                                                 -0.322    0.747
+    ## n_tokens_title                                                    0.025    0.980
+    ## kw_avg_avg:average_token_length                                  -0.193    0.847
+    ## kw_avg_avg:n_tokens_content                                       0.105    0.916
+    ## average_token_length:n_tokens_content                             0.317    0.751
+    ## kw_avg_avg:n_tokens_title                                         0.025    0.980
+    ## average_token_length:n_tokens_title                              -0.017    0.987
+    ## n_tokens_content:n_tokens_title                                   0.270    0.788
+    ## kw_avg_avg:average_token_length:n_tokens_content                 -0.087    0.931
+    ## kw_avg_avg:average_token_length:n_tokens_title                   -0.034    0.973
+    ## kw_avg_avg:n_tokens_content:n_tokens_title                       -0.169    0.866
+    ## average_token_length:n_tokens_content:n_tokens_title             -0.243    0.808
+    ## kw_avg_avg:average_token_length:n_tokens_content:n_tokens_title   0.146    0.884
     ## 
     ## Residual standard error: 10070 on 1453 degrees of freedom
     ## Multiple R-squared:  0.02301,    Adjusted R-squared:  0.01292 
@@ -626,13 +602,18 @@ with all main effects and interaction terms.
 
 ``` r
 # Generalates second linear model candidate
-lmfit2 <- lm(shares ~  n_tokens_content*num_imgs + n_tokens_content*num_videos + 
-                n_tokens_content:average_token_length + n_tokens_content*kw_avg_avg + 
-                n_tokens_content*global_sentiment_polarity + 
-                n_tokens_content*global_rate_negative_words + num_imgs*kw_avg_avg + 
-                num_imgs*abs_title_sentiment_polarity + num_videos*average_token_length + 
-                num_videos*global_subjectivity + num_videos*global_sentiment_polarity + 
-                num_videos*global_rate_negative_words + num_videos*abs_title_sentiment_polarity,
+lmfit2 <- lm(shares ~  n_tokens_content*num_imgs +
+               n_tokens_content*num_videos + 
+               n_tokens_content:average_token_length +
+               n_tokens_content*kw_avg_avg + 
+               n_tokens_content*global_sentiment_polarity + 
+               n_tokens_content*global_rate_negative_words +
+               num_imgs*kw_avg_avg + num_imgs*abs_title_sentiment_polarity +
+               num_videos*average_token_length + 
+               num_videos*global_subjectivity +
+               num_videos*global_sentiment_polarity + 
+               num_videos*global_rate_negative_words +
+               num_videos*abs_title_sentiment_polarity,
               data = training_data)
 summary(lmfit2)
 ```
@@ -653,54 +634,30 @@ summary(lmfit2)
     ## -22635  -2592  -1379    251 201208 
     ## 
     ## Coefficients:
-    ##                                               Estimate Std. Error
-    ## (Intercept)                                  9.610e+03  2.916e+03
-    ## n_tokens_content                            -2.220e+01  8.546e+00
-    ## num_imgs                                    -2.135e+02  1.287e+02
-    ## num_videos                                  -7.651e+03  2.215e+03
-    ## kw_avg_avg                                   3.880e-01  3.550e-01
-    ## global_sentiment_polarity                   -2.762e+04  6.229e+03
-    ## global_rate_negative_words                  -1.908e+05  5.988e+04
-    ## abs_title_sentiment_polarity                 1.692e+03  1.362e+03
-    ## average_token_length                        -7.899e+02  6.836e+02
-    ## global_subjectivity                          4.363e+03  3.751e+03
-    ## n_tokens_content:num_imgs                   -4.161e-02  1.615e-02
-    ## n_tokens_content:num_videos                  1.516e+00  3.577e-01
-    ## n_tokens_content:average_token_length        2.836e+00  1.741e+00
-    ## n_tokens_content:kw_avg_avg                 -6.446e-04  4.798e-04
-    ## n_tokens_content:global_sentiment_polarity   4.646e+01  1.059e+01
-    ## n_tokens_content:global_rate_negative_words  3.702e+02  1.020e+02
-    ## num_imgs:kw_avg_avg                          7.130e-02  2.994e-02
-    ## num_imgs:abs_title_sentiment_polarity       -1.861e+02  1.367e+02
-    ## num_videos:average_token_length              1.313e+03  4.765e+02
-    ## num_videos:global_subjectivity              -6.089e+03  3.044e+03
-    ## num_videos:global_sentiment_polarity         1.550e+04  3.110e+03
-    ## num_videos:global_rate_negative_words        1.358e+05  3.078e+04
-    ## num_videos:abs_title_sentiment_polarity     -3.079e+03  6.552e+02
-    ##                                             t value Pr(>|t|)    
-    ## (Intercept)                                   3.296 0.001004 ** 
-    ## n_tokens_content                             -2.598 0.009485 ** 
-    ## num_imgs                                     -1.659 0.097352 .  
-    ## num_videos                                   -3.454 0.000569 ***
-    ## kw_avg_avg                                    1.093 0.274568    
-    ## global_sentiment_polarity                    -4.435 9.92e-06 ***
-    ## global_rate_negative_words                   -3.187 0.001471 ** 
-    ## abs_title_sentiment_polarity                  1.242 0.214515    
-    ## average_token_length                         -1.155 0.248117    
-    ## global_subjectivity                           1.163 0.244995    
-    ## n_tokens_content:num_imgs                    -2.577 0.010058 *  
-    ## n_tokens_content:num_videos                   4.238 2.39e-05 ***
-    ## n_tokens_content:average_token_length         1.629 0.103431    
-    ## n_tokens_content:kw_avg_avg                  -1.344 0.179315    
-    ## n_tokens_content:global_sentiment_polarity    4.388 1.23e-05 ***
-    ## n_tokens_content:global_rate_negative_words   3.629 0.000294 ***
-    ## num_imgs:kw_avg_avg                           2.382 0.017364 *  
-    ## num_imgs:abs_title_sentiment_polarity        -1.362 0.173528    
-    ## num_videos:average_token_length               2.755 0.005945 ** 
-    ## num_videos:global_subjectivity               -2.000 0.045688 *  
-    ## num_videos:global_sentiment_polarity          4.985 6.96e-07 ***
-    ## num_videos:global_rate_negative_words         4.414 1.09e-05 ***
-    ## num_videos:abs_title_sentiment_polarity      -4.699 2.87e-06 ***
+    ##                                               Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)                                  9.610e+03  2.916e+03   3.296 0.001004 ** 
+    ## n_tokens_content                            -2.220e+01  8.546e+00  -2.598 0.009485 ** 
+    ## num_imgs                                    -2.135e+02  1.287e+02  -1.659 0.097352 .  
+    ## num_videos                                  -7.651e+03  2.215e+03  -3.454 0.000569 ***
+    ## kw_avg_avg                                   3.880e-01  3.550e-01   1.093 0.274568    
+    ## global_sentiment_polarity                   -2.762e+04  6.229e+03  -4.435 9.92e-06 ***
+    ## global_rate_negative_words                  -1.908e+05  5.988e+04  -3.187 0.001471 ** 
+    ## abs_title_sentiment_polarity                 1.692e+03  1.362e+03   1.242 0.214515    
+    ## average_token_length                        -7.899e+02  6.836e+02  -1.155 0.248117    
+    ## global_subjectivity                          4.363e+03  3.751e+03   1.163 0.244995    
+    ## n_tokens_content:num_imgs                   -4.161e-02  1.615e-02  -2.577 0.010058 *  
+    ## n_tokens_content:num_videos                  1.516e+00  3.577e-01   4.238 2.39e-05 ***
+    ## n_tokens_content:average_token_length        2.836e+00  1.741e+00   1.629 0.103431    
+    ## n_tokens_content:kw_avg_avg                 -6.446e-04  4.798e-04  -1.344 0.179315    
+    ## n_tokens_content:global_sentiment_polarity   4.646e+01  1.059e+01   4.388 1.23e-05 ***
+    ## n_tokens_content:global_rate_negative_words  3.702e+02  1.020e+02   3.629 0.000294 ***
+    ## num_imgs:kw_avg_avg                          7.130e-02  2.994e-02   2.382 0.017364 *  
+    ## num_imgs:abs_title_sentiment_polarity       -1.861e+02  1.367e+02  -1.362 0.173528    
+    ## num_videos:average_token_length              1.313e+03  4.765e+02   2.755 0.005945 ** 
+    ## num_videos:global_subjectivity              -6.089e+03  3.044e+03  -2.000 0.045688 *  
+    ## num_videos:global_sentiment_polarity         1.550e+04  3.110e+03   4.985 6.96e-07 ***
+    ## num_videos:global_rate_negative_words        1.358e+05  3.078e+04   4.414 1.09e-05 ***
+    ## num_videos:abs_title_sentiment_polarity     -3.079e+03  6.552e+02  -4.699 2.87e-06 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
@@ -746,7 +703,8 @@ We can now fit our model above into a tree function. This will give us a
 better picture of where our variables are most important in our model.
 
 ``` r
-fitTree <- tree(shares ~kw_avg_avg + average_token_length + n_tokens_content + n_tokens_title, data = training_data)
+fitTree <- tree(shares ~kw_avg_avg + average_token_length + n_tokens_content + 
+                  n_tokens_title, data = training_data)
 plot(fitTree)
 text(fitTree)
 ```
@@ -764,7 +722,10 @@ of complexity for our model is needed/beneficial.
 #Train control options for ensemble models
 trCtrl <- trainControl(method = "repeatedcv", number = 5, repeats = 3)
 
-rfFit <- train(shares ~kw_avg_avg + average_token_length + n_tokens_content + n_tokens_title, data = training_data, method = "rf",trControl=trCtrl, preProcess = c("center", "scale"),tuneGrid = data.frame(mtry = 1:4))
+rfFit <- train(shares ~kw_avg_avg + average_token_length + n_tokens_content +
+                 n_tokens_title, data = training_data, method = "rf",
+               trControl=trCtrl, preProcess = c("center", "scale"),
+               tuneGrid = data.frame(mtry = 1:4))
 
 plot(rfFit)
 ```
@@ -828,18 +789,26 @@ boost
 # Comparison
 
 ``` r
-lmfit_1 = c(MAE(test_data$shares,predict(lmfit1)),RMSE(test_data$shares,predict(lmfit1)))
+lmfit_1 = c(MAE(test_data$shares,predict(lmfit1)),
+            RMSE(test_data$shares,predict(lmfit1)))
 
-lmfit_2 = c(MAE(test_data$shares,predict(lmfit2)),RMSE(test_data$shares,predict(lmfit2)))
+lmfit_2 = c(MAE(test_data$shares,predict(lmfit2)),
+            RMSE(test_data$shares,predict(lmfit2)))
 
-rffit_c = c(MAE(test_data$shares,predict(rfFit)),RMSE(test_data$shares,predict(rfFit)))
+rffit_c = c(MAE(test_data$shares,predict(rfFit)),
+            RMSE(test_data$shares,predict(rfFit)))
 
-boostTree_c = c(MAE(test_data$shares,predict(boostTree)),RMSE(test_data$shares,predict(boostTree)))
+boostTree_c = c(MAE(test_data$shares,predict(boostTree)),
+                RMSE(test_data$shares,predict(boostTree)))
 
-MAE_RMSE_SUMM <- rbind.data.frame("Linear Model 1" = lmfit_1, "Linear Model 2" = lmfit_2,"Random Forrest" = rffit_c, "Boosted Tree" = boostTree_c)
+MAE_RMSE_SUMM <- rbind.data.frame("Linear Model 1" = lmfit_1,
+                                  "Linear Model 2" = lmfit_2,
+                                  "Random Forrest" = rffit_c,
+                                  "Boosted Tree" = boostTree_c)
 
 colnames(MAE_RMSE_SUMM) <- c("MAE","RMSE")
-rownames(MAE_RMSE_SUMM) <- c("Linear Model 1", "Linear Model 2", "Random Forrest", "Boosted Tree")
+rownames(MAE_RMSE_SUMM) <- c("Linear Model 1", "Linear Model 2",
+                             "Random Forrest", "Boosted Tree")
 kable(MAE_RMSE_SUMM, caption = "Comparing models via MAE and RMSE")
 ```
 
@@ -871,7 +840,7 @@ category <- c("lifestyle", "entertainment", "bus", "socmed", "tech", "world")
 # Creates output filenames
 output_file <- paste0(category, ".md")
 # Creates a list for each data channel with just the category parameter
-params = lapply(category, FUN = function(x){list(category = x)})
+params = lapply(category, FUN = function(x){list(category = x)}) 
 
 # Stores list of file output file names and parameters as a data frame
 reports <- tibble(output_file, params)

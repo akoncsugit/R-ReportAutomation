@@ -58,8 +58,10 @@ We will read in our csv dataset. We will also split our data by
 `data_channel_is_*`.
 
 ``` r
-#Reads in csv file `OnlineNewsPopularity/OnlineNewsPopularity.csv` to produce a data frame
-online_new_popularity_data <- read.csv("./OnlineNewsPopularity/OnlineNewsPopularity.csv")
+# Reads in csv file `OnlineNewsPopularity/OnlineNewsPopularity.csv` 
+# to produce a data frame
+online_new_popularity_data <- 
+  read.csv("./OnlineNewsPopularity/OnlineNewsPopularity.csv")
 ```
 
 ## Subsetting the data
@@ -82,8 +84,8 @@ subset_data <- online_new_popularity_data %>%
   filter(!!as.name(paste0("data_channel_is_",params$category)) == 1) %>%
   select(n_tokens_title, n_tokens_content, num_imgs:average_token_length,
          kw_avg_avg, is_weekend, global_subjectivity, global_sentiment_polarity, 
-         global_rate_negative_words, avg_negative_polarity, abs_title_subjectivity,
-         abs_title_sentiment_polarity, shares)
+         global_rate_negative_words, avg_negative_polarity,
+         abs_title_subjectivity, abs_title_sentiment_polarity, shares)
 ```
 
 Next, we will check for potential problematic values such as NA or
@@ -93,7 +95,8 @@ potential problematic values.
 
 ``` r
 # Checking data for NA  or infinite values
-na_or_infinite <- as.data.frame(apply(subset_data, 2, function(x) any(is.na(x) | is.infinite(x))))
+na_or_infinite <- as.data.frame(apply(subset_data,
+                                2, function(x) any(is.na(x) | is.infinite(x))))
 colnames(na_or_infinite) <- c("NA or Infinite values")
 na_or_infinite %>% kable()
 ```
@@ -152,27 +155,27 @@ summary <- summary(training_data)
 summary
 ```
 
-    ##  n_tokens_title  n_tokens_content    num_imgs      
-    ##  Min.   : 4.00   Min.   :   0.0   Min.   :  0.000  
-    ##  1st Qu.: 9.00   1st Qu.: 335.0   1st Qu.:  1.000  
-    ##  Median :10.00   Median : 512.0   Median :  1.000  
-    ##  Mean   :10.57   Mean   : 599.8   Mean   :  2.839  
-    ##  3rd Qu.:12.00   3rd Qu.: 770.0   3rd Qu.:  2.000  
-    ##  Max.   :20.00   Max.   :7081.0   Max.   :100.000  
-    ##    num_videos      average_token_length   kw_avg_avg   
-    ##  Min.   : 0.0000   Min.   :0.000        Min.   :    0  
-    ##  1st Qu.: 0.0000   1st Qu.:4.656        1st Qu.: 2062  
-    ##  Median : 0.0000   Median :4.821        Median : 2394  
-    ##  Mean   : 0.5427   Mean   :4.677        Mean   : 2516  
-    ##  3rd Qu.: 1.0000   3rd Qu.:4.974        3rd Qu.: 2773  
-    ##  Max.   :51.0000   Max.   :5.783        Max.   :17839  
-    ##    is_weekend     global_subjectivity global_sentiment_polarity
-    ##  Min.   :0.0000   Min.   :0.0000      Min.   :-0.35947         
-    ##  1st Qu.:0.0000   1st Qu.:0.3575      1st Qu.: 0.02272         
-    ##  Median :0.0000   Median :0.4148      Median : 0.07236         
-    ##  Mean   :0.1311   Mean   :0.4028      Mean   : 0.07610         
-    ##  3rd Qu.:0.0000   3rd Qu.:0.4659      3rd Qu.: 0.12498         
-    ##  Max.   :1.0000   Max.   :0.8658      Max.   : 0.50000         
+    ##  n_tokens_title  n_tokens_content    num_imgs         num_videos     
+    ##  Min.   : 4.00   Min.   :   0.0   Min.   :  0.000   Min.   : 0.0000  
+    ##  1st Qu.: 9.00   1st Qu.: 335.0   1st Qu.:  1.000   1st Qu.: 0.0000  
+    ##  Median :10.00   Median : 512.0   Median :  1.000   Median : 0.0000  
+    ##  Mean   :10.57   Mean   : 599.8   Mean   :  2.839   Mean   : 0.5427  
+    ##  3rd Qu.:12.00   3rd Qu.: 770.0   3rd Qu.:  2.000   3rd Qu.: 1.0000  
+    ##  Max.   :20.00   Max.   :7081.0   Max.   :100.000   Max.   :51.0000  
+    ##  average_token_length   kw_avg_avg      is_weekend    
+    ##  Min.   :0.000        Min.   :    0   Min.   :0.0000  
+    ##  1st Qu.:4.656        1st Qu.: 2062   1st Qu.:0.0000  
+    ##  Median :4.821        Median : 2394   Median :0.0000  
+    ##  Mean   :4.677        Mean   : 2516   Mean   :0.1311  
+    ##  3rd Qu.:4.974        3rd Qu.: 2773   3rd Qu.:0.0000  
+    ##  Max.   :5.783        Max.   :17839   Max.   :1.0000  
+    ##  global_subjectivity global_sentiment_polarity
+    ##  Min.   :0.0000      Min.   :-0.35947         
+    ##  1st Qu.:0.3575      1st Qu.: 0.02272         
+    ##  Median :0.4148      Median : 0.07236         
+    ##  Mean   :0.4028      Mean   : 0.07610         
+    ##  3rd Qu.:0.4659      3rd Qu.: 0.12498         
+    ##  Max.   :0.8658      Max.   : 0.50000         
     ##  global_rate_negative_words avg_negative_polarity
     ##  Min.   :0.00000            Min.   :-0.9000      
     ##  1st Qu.:0.01105            1st Qu.:-0.3083      
@@ -278,13 +281,15 @@ follow what the boxplot tells us when choosing what to remove.
 
 ``` r
 # Boxplot from training_data
-boxplot(training_data$shares,horizontal = TRUE, range = 2, main = "Boxplot of shares with outliers")
+boxplot(training_data$shares,horizontal = TRUE, range = 2,
+        main = "Boxplot of shares with outliers")
 ```
 
 ![](world_files/figure-gfm/boxplot-outliers-1.png)<!-- -->
 
 ``` r
-boxplot(training_data$shares,horizontal = TRUE, range = 2, outline = FALSE,main = "Boxplot of shares without outliers")
+boxplot(training_data$shares,horizontal = TRUE, range = 2, outline = FALSE,
+        main = "Boxplot of shares without outliers")
 ```
 
 ![](world_files/figure-gfm/boxplot-outliers-2.png)<!-- -->
@@ -294,20 +299,24 @@ boxplot(training_data$shares,horizontal = TRUE, range = 2, outline = FALSE,main 
 IQR <- quantile(training_data$shares)[4] - quantile(subset_data$shares)[2]
 upper_limit <- quantile(training_data$shares)[4] + (1.5 * IQR)
 lower_limit <- quantile(training_data$shares)[2] - (1.5 * IQR)
-subset_data_wo_outliers <- training_data %>% filter(shares <= upper_limit & shares >= lower_limit)
+subset_data_wo_outliers <- training_data %>%
+  filter(shares <= upper_limit & shares >= lower_limit)
 ```
 
 After we remove any potential outliers to our data our we can compare
 shares our key metrics.
 
 ``` r
-correlation1 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$kw_avg_avg)
+correlation1 <- cor(subset_data_wo_outliers$shares,
+                    subset_data_wo_outliers$kw_avg_avg)
 
 plot1 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = kw_avg_avg)) + 
   geom_point() +
   geom_smooth() +
-  labs(title = "Number of shares vs. Average number of key words", y= "# of shares", x = "Average # of key words") +
-  geom_text(color = "red",x=15000,y=5000,label = paste0("Correlation = ",round(correlation1,3)))
+  labs(title = "Number of shares vs. Average number of key words",
+       y= "# of shares", x = "Average # of key words") +
+  geom_text(color = "red",x=15000,y=5000,
+            label = paste0("Correlation = ",round(correlation1,3)))
 
 plot1
 ```
@@ -317,18 +326,22 @@ plot1
 ![](world_files/figure-gfm/shares-vs-keywords-average-1.png)<!-- -->
 
 We can measure the trend of shares as a function of Average number of
-key words. If we see a possitive trend we can say that the more key
-words in the articles the more likely it is to be shared, the opposite
-can also be said. We measure the correlation to get a more precise gauge
-in case the graph is not clear enough.
+key words. If we see a positive trend we can say that the more key words
+in the articles the more likely it is to be shared, the opposite can
+also be said. We measure the correlation to get a more precise gauge in
+case the graph is not clear enough.
 
 ``` r
-correlation2 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$average_token_length)
+correlation2 <- cor(subset_data_wo_outliers$shares,
+                    subset_data_wo_outliers$average_token_length)
 
-plot2 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = average_token_length)) +
-geom_density_2d() + 
-  labs(title = "number of shares vs. Average length of words in content", y= "# of shares", x = "Average length of words in content") +
-  geom_text(color = "red",x=5,y=3500,label = paste0("Correlation = ",round(correlation2,3)))
+plot2 <- ggplot(subset_data_wo_outliers, 
+                aes(y= shares,x = average_token_length)) +
+  geom_density_2d() + 
+  labs(title = "number of shares vs. Average length of words in content",
+       y= "# of shares", x = "Average length of words in content") +
+  geom_text(color = "red",x=5,y=3500,label = paste0("Correlation = ",
+                                                    round(correlation2,3)))
 
 plot2
 ```
@@ -340,12 +353,15 @@ we see where most of our shares come from. We can utilize this to help
 explain our model down below.
 
 ``` r
-correlation3 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$n_tokens_content)
+correlation3 <- cor(subset_data_wo_outliers$shares,
+                    subset_data_wo_outliers$n_tokens_content)
 
 plot3 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = n_tokens_content)) +
 geom_rug() +
-  labs(title = "number of shares vs. number of words in content", y= "# of shares", x = "# of words in content") +
-  geom_text(color = "red",x=4000,y=4000,label = paste0("Correlation = ",round(correlation3,3)))
+  labs(title = "number of shares vs. number of words in content",
+       y= "# of shares", x = "# of words in content") +
+  geom_text(color = "red",x=4000,
+            y=4000,label = paste0("Correlation = ",round(correlation3,3)))
 
 plot3
 ```
@@ -359,12 +375,15 @@ correlation. If both rugs are concentrated near zero than we see that
 the less words the more shareable the articles are or vice versa.
 
 ``` r
-correlation4 <- cor(subset_data_wo_outliers$shares,subset_data_wo_outliers$n_tokens_title)
+correlation4 <- cor(subset_data_wo_outliers$shares,
+                    subset_data_wo_outliers$n_tokens_title)
 
 plot4 <- ggplot(subset_data_wo_outliers, aes(y= shares,x = n_tokens_title)) +
 geom_col() +
-  labs(title = "number of shares vs. number of words in title", y= "# of shares", x = "# of words in title") +
-  geom_text(color = "red",x=15,y=600000,label = paste0("Correlation = ",round(correlation4,3)))
+  labs(title = "number of shares vs. number of words in title",
+       y= "# of shares", x = "# of words in title") +
+  geom_text(color = "red",x=15,y=600000,label = paste0("Correlation = ",
+                                                       round(correlation4,3)))
 
 plot4
 ```
@@ -396,13 +415,15 @@ corNoOut<- function(x) {
   var1 <- get(x, subset_data_wo_outliers)
   title <-paste0("Scatterplot of shares vs ", x)
   xlabel <- x
-  g <- ggplot(subset_data_wo_outliers, aes(x = var1, y = shares)) + geom_point() +
+  g <- ggplot(subset_data_wo_outliers, aes(x = var1, y = shares)) +
+    geom_point() +
     geom_smooth() + geom_smooth(method = lm, col = "Red") +
     labs(title = title, y= "# of shares", x = xlabel)
 }
 sentiment_preds <- list("global_subjectivity", "global_sentiment_polarity",
-"global_rate_negative_words", "avg_negative_polarity",
-"abs_title_subjectivity", "abs_title_sentiment_polarity")
+                        "global_rate_negative_words", "avg_negative_polarity",
+                        "abs_title_subjectivity",
+                        "abs_title_sentiment_polarity")
 lapply(sentiment_preds, corNoOut)
 ```
 
@@ -469,18 +490,19 @@ weekend_factor <- subset_data_wo_outliers %>%
   mutate(weekend = as.factor(is_weekend)) %>% select(weekend, shares)
 
 # Base plot
-g <- ggplot(weekend_factor, aes(x=shares)) +  xlab("Number of Shares") +
+g <- ggplot(weekend_factor, aes(x=shares)) +xlab("Number of Shares") +
   ylab("Density")
 
 # Filled, stacked histogram with density of shares by weekend level
 g + geom_histogram(aes(y = ..density.., fill = weekend)) + 
-  geom_density(adjust = 0.25, alpha = 0.5, aes(fill = weekend), position = "stack") +
+  geom_density(adjust = 0.25, alpha = 0.5, aes(fill = weekend),
+               position = "stack") +
   labs(title = "Density of Shares: Weekday vs. Weekend") + 
-  scale_fill_discrete(name = "Weekday or Weekend?", labels = c("Weekday", "Weekend"))
+  scale_fill_discrete(name = "Weekday or Weekend?",
+                      labels = c("Weekday", "Weekend"))
 ```
 
-    ## `stat_bin()` using `bins = 30`. Pick better value with
-    ## `binwidth`.
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
 ![](world_files/figure-gfm/shares-weekend-plot-1.png)<!-- -->
 
@@ -512,7 +534,9 @@ and content increase shares.
 
 ``` r
 # First linear model
-lmfit1 <- lm(shares ~kw_avg_avg*average_token_length*n_tokens_content*n_tokens_title, data = training_data)
+lmfit1 <- 
+  lm(shares ~kw_avg_avg*average_token_length*n_tokens_content*n_tokens_title,
+     data = training_data)
 summary(lmfit1)
 ```
 
@@ -645,13 +669,18 @@ with all main effects and interaction terms.
 
 ``` r
 # Generalates second linear model candidate
-lmfit2 <- lm(shares ~  n_tokens_content*num_imgs + n_tokens_content*num_videos + 
-                n_tokens_content:average_token_length + n_tokens_content*kw_avg_avg + 
-                n_tokens_content*global_sentiment_polarity + 
-                n_tokens_content*global_rate_negative_words + num_imgs*kw_avg_avg + 
-                num_imgs*abs_title_sentiment_polarity + num_videos*average_token_length + 
-                num_videos*global_subjectivity + num_videos*global_sentiment_polarity + 
-                num_videos*global_rate_negative_words + num_videos*abs_title_sentiment_polarity,
+lmfit2 <- lm(shares ~  n_tokens_content*num_imgs +
+               n_tokens_content*num_videos + 
+               n_tokens_content:average_token_length +
+               n_tokens_content*kw_avg_avg + 
+               n_tokens_content*global_sentiment_polarity + 
+               n_tokens_content*global_rate_negative_words +
+               num_imgs*kw_avg_avg + num_imgs*abs_title_sentiment_polarity +
+               num_videos*average_token_length + 
+               num_videos*global_subjectivity +
+               num_videos*global_sentiment_polarity + 
+               num_videos*global_rate_negative_words +
+               num_videos*abs_title_sentiment_polarity,
               data = training_data)
 summary(lmfit2)
 ```
@@ -765,7 +794,8 @@ We can now fit our model above into a tree function. This will give us a
 better picture of where our variables are most important in our model.
 
 ``` r
-fitTree <- tree(shares ~kw_avg_avg + average_token_length + n_tokens_content + n_tokens_title, data = training_data)
+fitTree <- tree(shares ~kw_avg_avg + average_token_length + n_tokens_content + 
+                  n_tokens_title, data = training_data)
 plot(fitTree)
 text(fitTree)
 ```
@@ -783,7 +813,10 @@ of complexity for our model is needed/beneficial.
 #Train control options for ensemble models
 trCtrl <- trainControl(method = "repeatedcv", number = 5, repeats = 3)
 
-rfFit <- train(shares ~kw_avg_avg + average_token_length + n_tokens_content + n_tokens_title, data = training_data, method = "rf",trControl=trCtrl, preProcess = c("center", "scale"),tuneGrid = data.frame(mtry = 1:4))
+rfFit <- train(shares ~kw_avg_avg + average_token_length + n_tokens_content +
+                 n_tokens_title, data = training_data, method = "rf",
+               trControl=trCtrl, preProcess = c("center", "scale"),
+               tuneGrid = data.frame(mtry = 1:4))
 
 plot(rfFit)
 ```
@@ -847,18 +880,26 @@ boost
 # Comparison
 
 ``` r
-lmfit_1 = c(MAE(test_data$shares,predict(lmfit1)),RMSE(test_data$shares,predict(lmfit1)))
+lmfit_1 = c(MAE(test_data$shares,predict(lmfit1)),
+            RMSE(test_data$shares,predict(lmfit1)))
 
-lmfit_2 = c(MAE(test_data$shares,predict(lmfit2)),RMSE(test_data$shares,predict(lmfit2)))
+lmfit_2 = c(MAE(test_data$shares,predict(lmfit2)),
+            RMSE(test_data$shares,predict(lmfit2)))
 
-rffit_c = c(MAE(test_data$shares,predict(rfFit)),RMSE(test_data$shares,predict(rfFit)))
+rffit_c = c(MAE(test_data$shares,predict(rfFit)),
+            RMSE(test_data$shares,predict(rfFit)))
 
-boostTree_c = c(MAE(test_data$shares,predict(boostTree)),RMSE(test_data$shares,predict(boostTree)))
+boostTree_c = c(MAE(test_data$shares,predict(boostTree)),
+                RMSE(test_data$shares,predict(boostTree)))
 
-MAE_RMSE_SUMM <- rbind.data.frame("Linear Model 1" = lmfit_1, "Linear Model 2" = lmfit_2,"Random Forrest" = rffit_c, "Boosted Tree" = boostTree_c)
+MAE_RMSE_SUMM <- rbind.data.frame("Linear Model 1" = lmfit_1,
+                                  "Linear Model 2" = lmfit_2,
+                                  "Random Forrest" = rffit_c,
+                                  "Boosted Tree" = boostTree_c)
 
 colnames(MAE_RMSE_SUMM) <- c("MAE","RMSE")
-rownames(MAE_RMSE_SUMM) <- c("Linear Model 1", "Linear Model 2", "Random Forrest", "Boosted Tree")
+rownames(MAE_RMSE_SUMM) <- c("Linear Model 1", "Linear Model 2",
+                             "Random Forrest", "Boosted Tree")
 kable(MAE_RMSE_SUMM, caption = "Comparing models via MAE and RMSE")
 ```
 
@@ -890,7 +931,7 @@ category <- c("lifestyle", "entertainment", "bus", "socmed", "tech", "world")
 # Creates output filenames
 output_file <- paste0(category, ".md")
 # Creates a list for each data channel with just the category parameter
-params = lapply(category, FUN = function(x){list(category = x)})
+params = lapply(category, FUN = function(x){list(category = x)}) 
 
 # Stores list of file output file names and parameters as a data frame
 reports <- tibble(output_file, params)
