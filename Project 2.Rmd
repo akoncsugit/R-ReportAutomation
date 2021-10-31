@@ -4,6 +4,7 @@ author: "Sergio Mora & Ashley Ko"
 output:
   html_document:  
     df_print: paged 
+    keep_md: yes
 params:
   category: "lifestyle"
 #params:

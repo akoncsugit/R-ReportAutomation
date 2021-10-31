@@ -1,37 +1,33 @@
-## Welcome to GitHub Pages
+# ST558 Project 2
+## Sergio Mora and Ashley Ko
 
-You can use the [editor on GitHub](https://github.com/Smora0713/Project-2/edit/main/README.md) to maintain and preview the content for your website in Markdown files.
+Below are the reports for each category. Also is the code that creates said reports automatically based on the `params` parameter. Each report is simmilar to the other reports but can vary depending on the data.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+  - [lifestyle](lifestyle.html)
+  - [entertainment](entertainment.html)
+  - [bus](bus.html)
+  - [socmed](socmed.html)
+  - [tech](tech.html)
+  - [world](world.html)
 
-### Markdown
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+This is the code that creates the above reports.
 
 ```markdown
-Syntax highlighted code block
+library(rmarkdown)
+# Creates a list of the six data_channel_is_* options
+category <- c("lifestyle", "entertainment", "bus", "socmed", "tech", "world")
 
-# Header 1
-## Header 2
-### Header 3
+# Creates output filenames
+output_file <- paste0(category, ".html")
+# Creates a list for each data channel with just the category parameter
+params = lapply(category, FUN = function(x){list(category = x)})
 
-- Bulleted
-- List
+# Stores list of file output file names and parameters as a data frame
+reports <- tibble(output_file, params)
 
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+# Applies the render function to each pair of output file name and category
+apply(reports, MARGIN = 1, FUN = function(x){ render(input = "Project 2.Rmd",
+                                                     output_file = x[[1]],
+                                                     params = x[[2]])})
 ```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/Smora0713/Project-2/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
