@@ -1,7 +1,8 @@
 # ST558 Project 2
 ## Sergio Mora and Ashley Ko
 
-This repo is used to generate prediction of the number of shares based on data from [online news popularity data set](https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity) for each of the six `data_channel_is_*` (`lifestyle`, `entertainment`, `bus`, `socmed`, `tech`, and `world`).
+This repo is used to generate prediction of the number of shares based on data from [online news popularity data set](https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity) for each of the six `data_channel_is_*` (`lifestyle`, `entertainment`, `bus`, `socmed`, `tech`, and `world`). The libraries required for this project are `knitr`, `rmarkdown`, `caret`, `tidyvers`, `corrplot`, and `tree`.
+
 
 Below are the reports for each category of **data_channel_is_***. Also is the code that creates said reports automatically based on the `params` parameter. Each report is simmilar to the other reports but can vary depending on the data.
 
