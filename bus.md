@@ -1,6 +1,6 @@
-ST558 Project 2
+Automating Reports for Predicted Number of Shares from Online News Popularity Data
 ================
-Sergio Mora & Ashley Ko
+Ashley Ko & Sergio Mora
 
 # Introduction
 
