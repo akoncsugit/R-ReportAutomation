@@ -1,6 +1,6 @@
 ---
-title: "ST558 Project 2"
-author: "Sergio Mora & Ashley Ko"
+title: "Automating Reports for Predicted Number of Shares from Online News Popularity Data"
+author: "Ashley Ko & Sergio Mora"
 output: github_document
 params:
   category: category
